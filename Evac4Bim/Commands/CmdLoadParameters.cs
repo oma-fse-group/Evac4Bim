@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 
 
 /// <summary>
-/// Display list of imported parameters 
-/// Add command to ribbon
+/// Add extra BuiltInCategories 
+/// Add extra Param types
 /// </summary>
 
 
@@ -55,22 +55,58 @@ namespace Evac4Bim
             string paramList = "";
             string msg = "The following parameters were loaded and configured succesfuly :";
 
-            
-
-                        
             // get the shared parameter file 
             DefinitionFile file = null;
-            try
-            {
-                file = app.OpenSharedParameterFile();
-            }
-            catch
+            if (! File.Exists(app.SharedParametersFilename))           
             {
                 // if it does not exist 
-                TaskDialog.Show("Error ", "No shared parameter file is defined in the project");
-                return Result.Failed;
+                //TaskDialog.Show("Error ", "No shared parameter file is defined in the project");
+                TaskDialog dialog = new TaskDialog("Decision");
+                dialog.MainContent = "No shared parameter file is defined in the project.\nCreate one to proceed ?";
+                dialog.AllowCancellation = true;
+                dialog.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
+
+                TaskDialogResult result = dialog.Show();
+                if (result == TaskDialogResult.Yes)
+                {
+                    // Yes
+                    FileSaveDialog d = new FileSaveDialog("Text files|*.txt");
+                    ItemSelectionDialogResult res = d.Show();
+                    if (res == ItemSelectionDialogResult.Confirmed)
+                    {
+
+                        ModelPath pth = d.GetSelectedModelPath();
+                        string localPath = null;
+
+                        localPath = ModelPathUtils.ConvertModelPathToUserVisiblePath(pth);
+
+                        //TaskDialog.Show("f", localPath);
+                        // crate the file and save it 
+                        System.IO.File.WriteAllLines(localPath, new string[0]);
+                        app.SharedParametersFilename = localPath;
+
+                    }
+                    else
+                    {
+                        return Result.Failed;
+                    }
+
+
+                    
+                     
+                }
+                else
+                {
+                    // No                    
+                    return Result.Failed;
+                }
+                
             }
 
+          
+            // open file
+            file = app.OpenSharedParameterFile();
+          
 
             // Initiate transaction 
             var tx = new Transaction(doc);
@@ -97,7 +133,7 @@ namespace Evac4Bim
             {
                 TaskDialog.Show("Error", "The shared file could not be opened");
                 tx.RollBack();
-                return Result.Succeeded;
+                return Result.Failed;
             }
 
 
