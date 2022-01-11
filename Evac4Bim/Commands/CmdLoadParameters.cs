@@ -40,11 +40,13 @@ namespace Evac4Bim
 
 
             const string SHARED_PARAMETER_FILE_NAME = @"\shared-pramas-list.csv";
-            const BuiltInParameterGroup PARAM_GROUP = BuiltInParameterGroup.PG_IFC;
+            const BuiltInParameterGroup PARAM_GROUP = BuiltInParameterGroup.PG_FIRE_PROTECTION;
             // create a dictionnary 
             IDictionary<string, BuiltInCategory> BuiltInCategoryDict = new Dictionary<string, BuiltInCategory>();
             BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors); //adding a key/value using the Add() method
-            BuiltInCategoryDict.Add("OST_Windows", BuiltInCategory.OST_Windows); //adding a key/value using the Add() method
+            BuiltInCategoryDict.Add("OST_Rooms", BuiltInCategory.OST_Rooms);
+            BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
+             
 
 
             IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();
@@ -57,7 +59,7 @@ namespace Evac4Bim
 
             // get the shared parameter file 
             DefinitionFile file = null;
-            if (! File.Exists(app.SharedParametersFilename))           
+            if (!File.Exists(app.SharedParametersFilename))
             {
                 // if it does not exist 
                 //TaskDialog.Show("Error ", "No shared parameter file is defined in the project");
@@ -92,21 +94,21 @@ namespace Evac4Bim
                     }
 
 
-                    
-                     
+
+
                 }
                 else
                 {
                     // No                    
                     return Result.Failed;
                 }
-                
+
             }
 
-          
+
             // open file
             file = app.OpenSharedParameterFile();
-          
+
 
             // Initiate transaction 
             var tx = new Transaction(doc);
@@ -150,6 +152,7 @@ namespace Evac4Bim
                 string description = row[3];
                 string user_modifiable = row[4];
 
+                //TaskDialog.Show("Debug", name);    
 
                 // create definition 
                 // create an instance definition in definition group MyParameters

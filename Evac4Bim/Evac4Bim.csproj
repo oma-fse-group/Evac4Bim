@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="RevitAPI">
       <HintPath>C:\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
@@ -50,13 +53,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CmdRenameItems.cs" />
     <Compile Include="Commands\CmdExport.cs" />
     <Compile Include="Commands\CmdLoadParameters.cs" />
+    <Compile Include="Commands\EvacSimModel.cs" />
+    <Compile Include="Commands\ImportParameters.cs" />
+    <Compile Include="Commands\Pathfinder.cs" />
     <Compile Include="MainApp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)\Newtonsoft.Json.xml" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
   </PropertyGroup>
 </Project>

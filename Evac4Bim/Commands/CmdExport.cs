@@ -78,7 +78,8 @@ namespace Evac4Bim
             opt.AddOption("ExportSpecificSchedules", "false");
             opt.AddOption("TessellationLevelOfDetail", "0.5");
             //opt.AddOption("StoreIFCGUID", "true");
-            opt.AddOption("ExportRoomsInView", "false");
+            //opt.AddOption("ExportRoomsInView", "true");
+            //opt.AddOption("PhaseToExport", "Phase 1");
 
 
             try
