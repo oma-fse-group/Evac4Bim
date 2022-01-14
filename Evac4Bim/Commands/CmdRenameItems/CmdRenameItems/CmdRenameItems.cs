@@ -32,7 +32,7 @@ namespace Evac4Bim
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             // collect elements
             IList<Element> doors = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToElements();
-            List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room) && room.Location != null).ToList();
+            List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room) ).ToList();
 
 
 
