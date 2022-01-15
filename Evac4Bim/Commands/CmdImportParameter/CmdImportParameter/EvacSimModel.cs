@@ -138,7 +138,7 @@ namespace Evac4Bim
 
             // building - proj info
             Element projInfo = doc.ProjectInformation as Element;
-            projInfo.LookupParameter("RSET").Set(this.build.RSET.ToString());
+            projInfo.LookupParameter("TotalRSET").Set(this.build.RSET.ToString());
             projInfo.LookupParameter("MaxWalkDistance").Set(this.build.max_walk_dist.ToString());
             projInfo.LookupParameter("AvgWalkDistance").Set(this.build.avg_walk_dist.ToString());
             projInfo.LookupParameter("MinWalkDistance").Set(this.build.min_walk_dist.ToString());

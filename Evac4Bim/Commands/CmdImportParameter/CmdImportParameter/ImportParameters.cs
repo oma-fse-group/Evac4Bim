@@ -71,7 +71,14 @@ namespace Evac4Bim
             }
 
 
+            // building - proj info
+            Element projInfo = doc.ProjectInformation as Element;
+            string path = Path.GetDirectoryName(localPath);
 
+            projInfo.LookupParameter("ResultsFolderPath").Set(path);
+
+
+            
 
 
 

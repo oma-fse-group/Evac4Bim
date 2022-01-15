@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdLoadParameters", "Evac4B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdRenameItems", "Evac4Bim\Commands\CmdRenameItems\CmdRenameItems\CmdRenameItems.csproj", "{5A6628BF-2479-40D7-83C6-4EDA408AF27B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdCreateSchedules", "Evac4Bim\Commands\CmdCreateSchedules\CmdCreateSchedules.csproj", "{9E64696B-7C48-4177-9C1A-24E2EB64ACFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{5A6628BF-2479-40D7-83C6-4EDA408AF27B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A6628BF-2479-40D7-83C6-4EDA408AF27B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A6628BF-2479-40D7-83C6-4EDA408AF27B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E64696B-7C48-4177-9C1A-24E2EB64ACFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E64696B-7C48-4177-9C1A-24E2EB64ACFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E64696B-7C48-4177-9C1A-24E2EB64ACFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E64696B-7C48-4177-9C1A-24E2EB64ACFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
