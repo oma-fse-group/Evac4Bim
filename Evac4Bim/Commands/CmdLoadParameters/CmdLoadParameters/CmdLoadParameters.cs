@@ -10,18 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-
 /// <summary>
-/// Add extra BuiltInCategories 
-/// Add extra Param types
+/// This class loads shared parameters in the Revit project 
+/// Shared parameters are stored in a CSV file which contains name, type and applicable category
+/// Shared parameter file is stored at he location of the dll assembly
 /// </summary>
-
 
 
 namespace Evac4Bim
 {
-
 
     [TransactionAttribute(TransactionMode.Manual)]
 
@@ -38,17 +35,20 @@ namespace Evac4Bim
             // Get the BingdingMap of current document.
             BindingMap bindingMap = doc.ParameterBindings;
 
-
+            
             const string SHARED_PARAMETER_FILE_NAME = @"\shared-pramas-list.csv";
+
+            // Parameters will be stored under PG_FIRE_PROTECTION group in the Revit UI
             const BuiltInParameterGroup PARAM_GROUP = BuiltInParameterGroup.PG_FIRE_PROTECTION;
-            // create a dictionnary 
+
+            // create a dictionnary to convert category names (retrieved from csv file) into enumerations
             IDictionary<string, BuiltInCategory> BuiltInCategoryDict = new Dictionary<string, BuiltInCategory>();
             BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors); //adding a key/value using the Add() method
             BuiltInCategoryDict.Add("OST_Rooms", BuiltInCategory.OST_Rooms);
             BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
-             
 
 
+            // create a dictionnary to convert param types (retrieved from csv file) into enumerations
             IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();
             ParameterTypeDict.Add("TEXT", ParameterType.Text); //adding a key/value using the Add() method
             ParameterTypeDict.Add("NUMBER", ParameterType.Number); //adding a key/value using the Add() method
@@ -57,18 +57,19 @@ namespace Evac4Bim
             string paramList = "";
             string msg = "The following parameters were loaded and configured succesfuly :";
 
-            // get the shared parameter file 
+            // First check if a shared param txt file is already defined in Revit => overwrite it
+            // Else, create one (ask user)
             DefinitionFile file = null;
             if (!File.Exists(app.SharedParametersFilename))
             {
                 // if it does not exist 
-                //TaskDialog.Show("Error ", "No shared parameter file is defined in the project");
                 TaskDialog dialog = new TaskDialog("Decision");
                 dialog.MainContent = "No shared parameter file is defined in the project.\nCreate one to proceed ?";
                 dialog.AllowCancellation = true;
                 dialog.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
 
                 TaskDialogResult result = dialog.Show();
+                // Ask user to create a new shared param file in Revit and save its path in the project (app.SharedParametersFilename)
                 if (result == TaskDialogResult.Yes)
                 {
                     // Yes
@@ -82,8 +83,7 @@ namespace Evac4Bim
 
                         localPath = ModelPathUtils.ConvertModelPathToUserVisiblePath(pth);
 
-                        //TaskDialog.Show("f", localPath);
-                        // crate the file and save it 
+                        // crate the blank file and save it 
                         System.IO.File.WriteAllLines(localPath, new string[0]);
                         app.SharedParametersFilename = localPath;
 
@@ -92,8 +92,6 @@ namespace Evac4Bim
                     {
                         return Result.Failed;
                     }
-
-
 
 
                 }
@@ -106,7 +104,7 @@ namespace Evac4Bim
             }
 
 
-            // open file
+            // open the shared param file file
             file = app.OpenSharedParameterFile();
 
 
@@ -115,19 +113,15 @@ namespace Evac4Bim
             tx.Start("Export IFC");
 
 
-            //TaskDialog.Show("Debug 2", file.Groups.get_Item(PARAMETER_GROUP_NAME).Name);
-            // if our group is not there, create it
+            // if the group "Evac" is not there, create it
             DefinitionGroup group = file.Groups.get_Item("Evac");
             if (group == null) group = file.Groups.Create("Evac");
 
             // get the definitions csv file
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + SHARED_PARAMETER_FILE_NAME;
-            //TaskDialog.Show("Debug", path);
             string[] contents = null;
             try
             {
-                //file = app.OpenSharedParameterFile();
-                //TaskDialog.Show("Debug 2", file.Groups.get_Item(PARAMETER_GROUP_NAME).Name);
                 contents = File.ReadAllText(path).Split('\n');
 
             }
@@ -138,7 +132,7 @@ namespace Evac4Bim
                 return Result.Failed;
             }
 
-
+            // Parse csv file
             var csv = from line in contents
                       select line.Split(',').ToArray();
 
@@ -146,16 +140,15 @@ namespace Evac4Bim
             foreach (var row in csv.Skip(1)
                 .TakeWhile(r => r.Length > 1 && r.Last().Trim().Length > 0))
             {
+                // retrieve info from csv file
                 string name = row[0]; // leftmost column                
                 string type = row[1];
                 string target = row[2];
                 string description = row[3];
                 string user_modifiable = row[4];
 
-                //TaskDialog.Show("Debug", name);    
-
                 // create definition 
-                // create an instance definition in definition group MyParameters
+                // create an instance definition in definition group 
                 ExternalDefinitionCreationOptions option = new ExternalDefinitionCreationOptions(name, ParameterTypeDict[type]);
                 option.UserModifiable = bool.Parse(user_modifiable);
                 option.Description = description;
@@ -168,7 +161,7 @@ namespace Evac4Bim
                 }
                 catch
                 {
-                    // Already exists, retrieve from shared file
+                    // Already exists, retrieve its definition from shared file
                     //TaskDialog.Show("Debug", "Not included in shared file " + name);                     
                     def = group.Definitions.get_Item(name);
 
@@ -195,20 +188,15 @@ namespace Evac4Bim
 
                 if (ContainsParameterName(bindingMap, option.Name, PARAM_GROUP, option.Type))
                 {
-                    // skip this one
-                    //TaskDialog.Show("Debug", "Skipping " + name);
                     continue;
-
 
                 }
                 else
                 {
-
                     bindingMap.Insert(def, instanceBinding, PARAM_GROUP);
 
                 }
 
-                //TaskDialog.Show("Debug", target);
                 paramList += "\n" + name;
             }
 

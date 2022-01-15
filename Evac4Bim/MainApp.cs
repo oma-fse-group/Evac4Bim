@@ -8,6 +8,12 @@ using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.IO;
 
+/// <summary>
+/// This class is the main entry point to the program 
+/// It includes calls for different commands 
+/// and it defines the UI in Revit
+/// </summary>
+
 namespace Evac4Bim
 {
     public class MainApp : IExternalApplication

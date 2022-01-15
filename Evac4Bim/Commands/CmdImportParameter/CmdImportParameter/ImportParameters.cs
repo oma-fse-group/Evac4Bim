@@ -9,7 +9,11 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
 
-
+/// <summary>
+/// This class imports simulation results and stores in project parameters previously defined 
+/// First, Pathfinder result json file is de-serialized in the class Pathfinder.PathfinderResultDeserializer
+/// Then results are stored in class EvacSimModel.EvacSimModel which is the standard interface for storing simulation data
+/// </summary>
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]
@@ -39,7 +43,6 @@ namespace Evac4Bim
 
             // Parse and deserialize JSON file
 
-            //localPath = @"C:\Users\Nazim\OneDrive - UGent\studies\Thesis\rvt samples\test_pathfinder\test2_summary.json";
             // read file content
             StreamReader r = new StreamReader(localPath);
             string json = r.ReadToEnd();

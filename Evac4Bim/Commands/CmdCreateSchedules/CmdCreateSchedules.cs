@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+/// <summary>
+/// This class create schedule in the revit UI
+/// </summary>
+
 
 namespace Evac4Bim
 {
@@ -25,6 +29,8 @@ namespace Evac4Bim
             t.Start();
 
             // check if schedule exists 
+            // if so, increment name to prevent conflicts
+
             IList <Element> scheduleList = new FilteredElementCollector(doc)
                                     .OfClass(typeof(ViewSchedule))
                                     .ToElements();
@@ -66,8 +72,6 @@ namespace Evac4Bim
                 projInfoScheduleName = projInfoScheduleName + " - " + projInfoScheduleNameIndex.ToString();
             }
 
-            //TaskDialog.Show("Debug", roomScheduleNameIndex.ToString());
-
 
             List<string> roomParamList = new List<string> { "Level", "Name", "IfcName" , "Area", "RSET", "InitialOccupantNumber"};
             ViewSchedule roomSchedule = createSchedule(doc, roomParamList, roomScheduleName, BuiltInCategory.OST_Rooms);
@@ -78,8 +82,6 @@ namespace Evac4Bim
 
             List<string> projInfoParamList = new List<string> { "Building Name", "Project Name", "ResultsFolderPath", "Author", "Client Name", "TotalRSET", "AvgWalkDistance", "MaxWalkDistance", "MinWalkDistance", };
             ViewSchedule projInfoSchedule = createSchedule(doc, projInfoParamList, projInfoScheduleName, BuiltInCategory.INVALID);
-
-
 
 
 

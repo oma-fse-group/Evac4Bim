@@ -8,6 +8,12 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
+/// <summary>
+/// This class sets the parameter "IfcName" for elements such as doors and rooms 
+/// The name includes the id of the element in the Revit model
+/// The name is stored in the ifc model and used to querry the elements when importing results 
+/// </summary>
+
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]
@@ -21,9 +27,7 @@ namespace Evac4Bim
             var doc = uidoc.Document;
             var app = commandData.Application.Application;
 
-
-            //TaskDialog.Show("Debug", "Hello world !");
-
+            // Open transaction
             var tx = new Transaction(doc);
             tx.Start("Export IFC");
 
@@ -35,13 +39,9 @@ namespace Evac4Bim
             List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room) ).ToList();
 
 
-
-
-
             //Loop and rename 
 
             // 1. Doors : Door_<Mark>_<elemID>
-            //TaskDialog.Show("Debug", "Doors found : "+doors.Count.ToString());
             int doorCounter = 0;
             foreach (Element d in doors)
             {
@@ -74,9 +74,7 @@ namespace Evac4Bim
             }
 
 
-
             TaskDialog.Show("Success", doorCounter.ToString()+" door(s) and "+ roomCounter +" room(s) " + "have been renamed");
-
 
 
             tx.Commit();

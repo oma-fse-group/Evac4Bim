@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+/// <summary>
+/// Standard interface for storing egress simulation data 
+/// Also responsible for writiing data into corresponding project parameters
+/// </summary>
+
 
 namespace Evac4Bim
     
@@ -61,7 +66,6 @@ namespace Evac4Bim
         public List<Door> doors { get; set; }
         public Building build { get; set; }
 
-
         public bool WriteIntoRevitModel(Document doc)
         {
             // Parse rooms 
@@ -103,8 +107,7 @@ namespace Evac4Bim
             // Parse doors
             foreach (Door door in this.doors)
             {
-                
-
+  
                 Element ele = null;
                 ElementId eleID = new ElementId(int.Parse(door.id));
 
@@ -130,11 +133,7 @@ namespace Evac4Bim
                     continue;
                 }
 
-
-
-
             }
-
 
             // building - proj info
             Element projInfo = doc.ProjectInformation as Element;
@@ -142,18 +141,11 @@ namespace Evac4Bim
             projInfo.LookupParameter("MaxWalkDistance").Set(this.build.max_walk_dist.ToString());
             projInfo.LookupParameter("AvgWalkDistance").Set(this.build.avg_walk_dist.ToString());
             projInfo.LookupParameter("MinWalkDistance").Set(this.build.min_walk_dist.ToString());
-
-            
-             
-
-
-
+    
             return true;
         }
 
-
     }
-
 
 }
 

@@ -26,7 +26,15 @@ namespace CmdPlotCharts
         {
 
         }
-
+        /// <summary>
+        /// Customize the scatter plot object
+        /// </summary>
+        /// <param name="dataX">X axis data</param>
+        /// <param name="dataY">Y axis data</param>
+        /// <param name="label">Legend text</param>
+        /// <param name="title">Title of the plot</param>
+        /// <param name="XLabel">X axis label</param>
+        /// <param name="YLabel">Y axis label</param>
         public void initPlot (double[] dataX, double[] dataY, string label, string title, string XLabel, string YLabel)
         {
 
