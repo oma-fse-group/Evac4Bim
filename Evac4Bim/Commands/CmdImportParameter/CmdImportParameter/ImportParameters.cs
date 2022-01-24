@@ -75,10 +75,39 @@ namespace Evac4Bim
 
 
             // building - proj info
-            Element projInfo = doc.ProjectInformation as Element;
+            // save csv files at same location as revit project ! 
+
+            // 0. Path to simulation files
             string path = Path.GetDirectoryName(localPath);
 
-            projInfo.LookupParameter("ResultsFolderPath").Set(path);
+            // 1. create a sub folder @ project location 
+            string projectDir = Path.GetDirectoryName(doc.PathName);
+            string pathString = System.IO.Path.Combine(projectDir, "Evac.bak");
+            System.IO.Directory.CreateDirectory(pathString);
+
+            // 2. copy _rooms.csv file to that folder 
+            string[] files = Directory.GetFiles(path, "*_rooms.csv"); // search for the file
+            string p = files.First(); // only keep first occurence
+
+            try
+            {
+                //contents = File.ReadAllText(p).Split('\n');          
+
+                //TaskDialog.Show("Debug",p );
+                File.Copy(p, Path.Combine(pathString, Path.GetFileName(p)) , true); 
+            }
+            catch
+            {
+                TaskDialog.Show("Error", "The results could not be copied");
+                return Result.Failed;
+            }
+
+
+
+            // 3. save new path in the revit project
+            Element projInfo = doc.ProjectInformation as Element;       
+            projInfo.LookupParameter("ResultsFolderPath").Set(pathString);
+
 
 
             

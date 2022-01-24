@@ -33,8 +33,7 @@ namespace Evac4Bim
             Figure f = new Figure();
 
 
-            var tx = new Transaction(doc);
-            tx.Start("Export IFC");
+            
 
 
 
@@ -65,6 +64,8 @@ namespace Evac4Bim
                 
             }
 
+
+
             // check if a room was selected and nothing else !
             Element elem = doc.GetElement(selectedIds.First());
 
@@ -76,7 +77,11 @@ namespace Evac4Bim
             
             // get the name of selected room
             string selectedRoomName = elem.LookupParameter("IfcName").AsString();
-
+           
+            
+            // Init transaction 
+            var tx = new Transaction(doc);
+            tx.Start("Export IFC");
 
             // get the  csv file
 
@@ -207,9 +212,9 @@ namespace Evac4Bim
             List<string> roomUsage2 = CmdPlotChartsUtils.getColumn(idx2, csv.Skip(1)); 
             
             double[] dataY2 = CmdPlotChartsUtils.convertToDoubleArray(roomUsage2);
-            string label2 = "Excited (Total)";
+            string label2 = "Exited (Total)";
 
-            string title2 = "Number of Occupants Who Excited";
+            string title2 = "Number of Occupants Who Exited";
             string XLabel2 = "Time in seconds";
             string YLabel2 = "Number of Occupants";
             f2.initPlot(dataX, dataY2, label2, title2, XLabel2, YLabel2);

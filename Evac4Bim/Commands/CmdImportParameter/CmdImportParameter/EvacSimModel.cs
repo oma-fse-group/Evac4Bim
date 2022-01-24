@@ -18,8 +18,8 @@ namespace Evac4Bim
         /// Class representing a single room 
         /// <parameter>RSET : time to last occupant leaving (seconds)</parameter>
         /// </summary>
-        public int initial_occupants_number { get; set; }
-        public double RSET { get; set; }
+        public string initial_occupants_number { get; set; }
+        public string RSET { get; set; }
         public string name { get; set; }
         public string id { get; set; }
 
@@ -34,10 +34,10 @@ namespace Evac4Bim
         /// <parameter>first_in : time of first occupant crossing door (seconds)</parameter>
         /// <parameter>first_in : time of last occupant crossing door (seconds)</parameter>
         /// </summary>
-        public double total_use { get; set; }
-        public double first_in { get; set; }
-        public double last_out { get; set; }
-        public double flow_avg { get; set; }
+        public string total_use { get; set; }
+        public string first_in { get; set; }
+        public string last_out { get; set; }
+        public string flow_avg { get; set; }
         public string name { get; set; }
         public string id { get; set; }
 
@@ -52,10 +52,10 @@ namespace Evac4Bim
         /// <parameter>max_walk_dist : walking distance (meters)</parameter>
         /// <parameter>avg_walk_dist : walking distance (meters)</parameter>
         /// </summary>
-        public double RSET { get; set; }
-        public double min_walk_dist { get; set; }
-        public double max_walk_dist { get; set; }
-        public double avg_walk_dist { get; set; }
+        public string RSET { get; set; }
+        public string min_walk_dist { get; set; }
+        public string max_walk_dist { get; set; }
+        public string avg_walk_dist { get; set; }
 
 
     }
@@ -75,8 +75,17 @@ namespace Evac4Bim
                 //TaskDialog.Show(room.room, room_id);
 
                 Element ele = null;
-                ElementId eleID = new ElementId(int.Parse(room.id));
-
+                ElementId eleID = null;
+                try
+                {
+                    eleID = new ElementId(int.Parse(room.id));
+                }
+                catch
+                {
+                    continue; // id not correct or does not exist
+                }
+                
+           
                 try
                 {
                     ele = doc.GetElement(eleID);
@@ -109,7 +118,15 @@ namespace Evac4Bim
             {
   
                 Element ele = null;
-                ElementId eleID = new ElementId(int.Parse(door.id));
+                ElementId eleID = null;
+                try
+                {
+                    eleID = new ElementId(int.Parse(door.id));
+                }
+                catch
+                {
+                    continue; // id not correct or does not exist
+                }
 
                 try
                 {

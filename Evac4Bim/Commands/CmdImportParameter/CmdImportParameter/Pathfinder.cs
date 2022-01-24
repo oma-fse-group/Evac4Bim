@@ -83,16 +83,20 @@ namespace Evac4Bim
 
     public class RoomUsage
     {
-        public int total_use { get; set; }
+        public string total_use { get; set; }
         public string first_in { get; set; }
         public string last_out { get; set; }
         public string room { get; set; }
         public string last_out_name { get; set; }
+
+        
+
+
     }
 
     public class DoorFlowRate
     {
-        public int total_use { get; set; }
+        public string total_use { get; set; }
         public string door { get; set; }
         public string first_in { get; set; }
         public string last_out { get; set; }
@@ -156,7 +160,9 @@ namespace Evac4Bim
                 room.name = r.room;
                 room.initial_occupants_number = r.total_use; // replace with actual initial number - before movmeent starts
                 room.id = room.name.Split('_').Last();
-                room.RSET = Convert.ToDouble(r.last_out);
+                // Exceptions 
+                if (r.last_out == "") { r.last_out = "0"; }
+                room.RSET = r.last_out;
 
                 EvClass.rooms.Add(room);
             }
@@ -167,19 +173,21 @@ namespace Evac4Bim
                 door.name = d.door;
                 door.id = door.name.Split('_').Last();
 
-                door.first_in = Convert.ToDouble(d.first_in);
-                door.total_use = Convert.ToDouble(d.total_use);
-                door.last_out = Convert.ToDouble(d.last_out);
-                door.flow_avg = Convert.ToDouble(d.flow_avg);
+                door.first_in = d.first_in;
+                door.total_use = d.total_use;
+                door.last_out = d.last_out;
+                door.flow_avg = d.flow_avg;
+               
+                
 
                 EvClass.doors.Add(door);
             }
 
             Building b = new Building();
-            b.RSET = Convert.ToDouble(this.completion_times_all.max.time);
-            b.max_walk_dist = Convert.ToDouble(this.movement_distances_all.max.distance);
-            b.min_walk_dist = Convert.ToDouble(this.movement_distances_all.min.distance);
-            b.avg_walk_dist = Convert.ToDouble(this.movement_distances_all.average);
+            b.RSET = this.completion_times_all.max.time;
+            b.max_walk_dist = this.movement_distances_all.max.distance;
+            b.min_walk_dist = this.movement_distances_all.min.distance;
+            b.avg_walk_dist = this.movement_distances_all.average;
             EvClass.build = b;
 
             return EvClass;
