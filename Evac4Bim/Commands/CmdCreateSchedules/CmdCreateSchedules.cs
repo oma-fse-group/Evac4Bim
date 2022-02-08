@@ -24,6 +24,8 @@ namespace Evac4Bim
             var doc = uidoc.Document;
             var app = commandData.Application.Application;
 
+            
+
             // transaction
             Transaction t = new Transaction(doc, "Create Schedule");
             t.Start();
@@ -36,9 +38,11 @@ namespace Evac4Bim
                                     .ToElements();
             string roomScheduleName = "Room Schedule (Evac4Bim)";
             string doorScheduleName = "Door Schedule (Evac4Bim)";
+            string stairScheduleName = "Stair Schedule (Evac4Bim)";
             string projInfoScheduleName = "Project Schedule (Evac4Bim)";
             int roomScheduleNameIndex = 0;
             int doorScheduleNameIndex = 0;
+            int stairScheduleNameIndex = 0;
             int projInfoScheduleNameIndex = 0;
 
             foreach (Element e in scheduleList)
@@ -57,7 +61,11 @@ namespace Evac4Bim
                 {
                     projInfoScheduleNameIndex++;
                 }
-                
+                if (name.Contains(stairScheduleName))
+                {
+                    stairScheduleNameIndex++;
+                }
+
             }
             if (roomScheduleNameIndex > 0)
             {
@@ -67,9 +75,13 @@ namespace Evac4Bim
             {
                 doorScheduleName = doorScheduleName + " - " + doorScheduleNameIndex.ToString();
             }
-            if (roomScheduleNameIndex > 0)
+            if (projInfoScheduleNameIndex > 0)
             {
                 projInfoScheduleName = projInfoScheduleName + " - " + projInfoScheduleNameIndex.ToString();
+            }
+            if (stairScheduleNameIndex > 0)
+            {
+                stairScheduleName = stairScheduleName + " - " + stairScheduleNameIndex.ToString();
             }
 
 
@@ -80,8 +92,11 @@ namespace Evac4Bim
             ViewSchedule doorSchedule = createSchedule(doc, doorParamList, doorScheduleName, BuiltInCategory.OST_Doors);
 
 
-            List<string> projInfoParamList = new List<string> { "Building Name", "Project Name", "ResultsFolderPath", "Author", "Client Name", "TotalRSET", "AvgWalkDistance", "MaxWalkDistance", "MinWalkDistance", };
+            List<string> projInfoParamList = new List<string> { "Building Name", "Project Name", "ResultsFolderPath", "SoftwareName", "SoftwareVersion", "SoftwareVendor", "SimulationSummary", "SimulationSummary", "Author", "Client Name", "TotalRSET", "AvgWalkDistance", "MaxWalkDistance", "MinWalkDistance" };
             ViewSchedule projInfoSchedule = createSchedule(doc, projInfoParamList, projInfoScheduleName, BuiltInCategory.INVALID);
+
+            List<string> stairParamList = new List<string> { "IfcName","Top Level","Base Level", "FirstIn","LastOut","FlowAvg" };
+            ViewSchedule stairSchedule = createSchedule(doc, stairParamList, stairScheduleName, BuiltInCategory.OST_Stairs);
 
 
 
@@ -90,9 +105,12 @@ namespace Evac4Bim
                 
            // set active view 
            uidoc.ActiveView = projInfoSchedule;
+            uidoc.ActiveView = stairSchedule;
+            uidoc.ActiveView = roomSchedule;
+            uidoc.ActiveView = doorSchedule;
 
-           //result
-           return Result.Succeeded;
+            //result
+            return Result.Succeeded;
         }
 
 
@@ -109,10 +127,16 @@ namespace Evac4Bim
             
             foreach (SchedulableField sf in schedule.Definition.GetSchedulableFields())
             {
+                
+
                 string sfName = sf.GetName(schedule.Document);
+
+                
+                
 
                 if (paramList.Contains(sfName))
                 {
+                    
                     int index = paramList.IndexOf(sfName);
                     try
                     {
@@ -126,6 +150,7 @@ namespace Evac4Bim
                         // keep newest field
                         fieldsDict.Remove(index);
                         fieldsDict.Add(index, sf);
+                        
 
                     }
                     
@@ -137,6 +162,7 @@ namespace Evac4Bim
             foreach (SchedulableField sf in fieldsDict.Values)
             {
                 ScheduleField scheduleField = schedule.Definition.AddField(sf);
+                
             }
             
             

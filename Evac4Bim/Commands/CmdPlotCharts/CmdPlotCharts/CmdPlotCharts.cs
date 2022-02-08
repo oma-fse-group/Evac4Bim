@@ -31,11 +31,7 @@ namespace Evac4Bim
 
             // Init figure object
             Figure f = new Figure();
-
-
-            
-
-
+                     
 
             // Retrieve selected rooms in the UI (if any) or throw an error 
             ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
@@ -79,53 +75,256 @@ namespace Evac4Bim
             string selectedRoomName = elem.LookupParameter("IfcName").AsString();
            
             
+           
+
+            //get room history data 
+            double[] dataX =  new double[] { }; 
+            double[] dataY =  new double[] { }; 
+            string occupantCountHistory = elem.LookupParameter("occupantCountHistory").AsString();
+            if (occupantCountHistory == "n.a" || occupantCountHistory == "")
+            {
+                TaskDialog.Show("Error", "No data available");
+                return Result.Failed;
+            }
             // Init transaction 
             var tx = new Transaction(doc);
             tx.Start("Export IFC");
 
-            // get the  csv file
-
-            Element projInfo = doc.ProjectInformation as Element;
-            string pth = projInfo.LookupParameter("ResultsFolderPath").AsString();
-            string[] contents = null;        
-            string[] files = Directory.GetFiles(pth, "*_rooms.csv"); // search for the file
-            string path = files.First();
-            
-            try
+            // Parse occupantCountHistory
+            string[] rows = occupantCountHistory.Split(';');
+            foreach (string r in rows)
             {
-                contents = File.ReadAllText(path).Split('\n');
-
-            }
-            catch
-            {
-                TaskDialog.Show("Error", "The results file could not be opened");
-                return Result.Failed;
+                string[] cols = r.Split(',');
+                double t = Double.Parse(cols[0]);
+                double rem = Double.Parse(cols[1]);
+              
+                dataX = dataX.Concat(new double[] { t }).ToArray();
+                dataY = dataY.Concat(new double[] { rem }).ToArray();
             }
 
-            // Parse csv file
-            var csv = from line in contents
-                      where !String.IsNullOrEmpty(line)
-                      select line.Split(',').ToArray();
-
-            // get header (first line)
-            List<string> header = csv.FirstOrDefault().ToList();
-
-            // get time (first column)
-            List<string> time = CmdPlotChartsUtils.getColumn(0, csv.Skip(1));
-
-            // get column index number of a room  (by its name)
-            int idx = header.IndexOf("\""+ selectedRoomName+"\"");
-            List<string> roomUsage = CmdPlotChartsUtils.getColumn(idx, csv.Skip(1)); // skip first line- header
-
-            double[] dataX = CmdPlotChartsUtils.convertToDoubleArray(time);
-            double[] dataY = CmdPlotChartsUtils.convertToDoubleArray(roomUsage);
-            string label = "Room 4_217640";
+           
+            string label = selectedRoomName;
                       
-            string title = "Number of Occupants in Selected Rooms";
+            string title = "Number of Occupants in room : "+ selectedRoomName;
             string XLabel = "Time in seconds";
             string YLabel = "Number of Occupants";
             // Init plotting from object and display
             f.initPlot(dataX, dataY, label, title, XLabel, YLabel); 
+
+            f.Show();
+
+
+
+            tx.Commit();
+            return Result.Succeeded;
+        }
+
+
+
+    }
+
+    [TransactionAttribute(TransactionMode.Manual)]
+    public class CmdPlotChartsDoorFlowRate : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            // Retrieve UIDocument object 
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            var uiapp = commandData.Application;
+            var doc = uidoc.Document;
+            var app = commandData.Application.Application;
+
+            // Init figure object
+            Figure f = new Figure();
+
+
+            // Retrieve selected rooms in the UI (if any) or throw an error 
+            ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
+            try
+            {
+                // Select some elements in Revit before invoking this command
+
+
+                // Get the element selection of current document.
+                Selection selection = uidoc.Selection;
+
+                // If no elements selected.
+                if (0 == selectedIds.Count)
+                {
+
+                    TaskDialog.Show("Error", "Please select a door");
+                    return Result.Failed;
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                message = e.Message;
+                return Result.Failed;
+
+            }
+
+
+
+            // check if a room was selected and nothing else !
+            Element elem = doc.GetElement(selectedIds.First());
+            if (elem.Category.Name != "Doors")
+            {
+                TaskDialog.Show("Error", "Please select a door");
+                return Result.Failed;
+            }
+
+            // get the name of selected room
+            string selectedName = elem.LookupParameter("IfcName").AsString();
+
+
+            
+
+            //get room history data 
+            double[] dataX = new double[] { };
+            double[] dataY = new double[] { };
+            string occupantCountHistory = elem.LookupParameter("doorFlowHistory").AsString();
+
+            if (occupantCountHistory == "n.a" || occupantCountHistory == "")
+            {
+                TaskDialog.Show("Error", "No data available");
+                return Result.Failed;
+            }
+
+            // Init transaction 
+            var tx = new Transaction(doc);
+            tx.Start("Export IFC");
+
+            // Parse occupantCountHistory
+            string[] rows = occupantCountHistory.Split(';');
+            foreach (string r in rows)
+            {
+                string[] cols = r.Split(',');
+                double t = Double.Parse(cols[0]);
+                double rem = Double.Parse(cols[1]);
+
+                dataX = dataX.Concat(new double[] { t }).ToArray();
+                dataY = dataY.Concat(new double[] { rem }).ToArray();
+            }
+
+
+            string label = selectedName;
+
+            string title = "Door Flowrate (Raw)";
+            string XLabel = "Time in seconds";
+            string YLabel = "Flow (pers/sec)";
+            // Init plotting from object and display
+            f.initPlot(dataX, dataY, label, title, XLabel, YLabel);
+
+            f.Show();
+
+
+
+            tx.Commit();
+            return Result.Succeeded;
+        }
+
+
+
+    }
+
+    [TransactionAttribute(TransactionMode.Manual)]
+    public class CmdPlotChartStairs : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            // Retrieve UIDocument object 
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            var uiapp = commandData.Application;
+            var doc = uidoc.Document;
+            var app = commandData.Application.Application;
+
+            // Init figure object
+            Figure f = new Figure();
+
+
+            // Retrieve selected rooms in the UI (if any) or throw an error 
+            ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
+            try
+            {
+                // Select some elements in Revit before invoking this command
+
+
+                // Get the element selection of current document.
+                Selection selection = uidoc.Selection;
+
+                // If no elements selected.
+                if (0 == selectedIds.Count)
+                {
+
+                    TaskDialog.Show("Error", "Please select a stair");
+                    return Result.Failed;
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                message = e.Message;
+                return Result.Failed;
+
+            }
+
+
+
+            // check if a room was selected and nothing else !
+            Element elem = doc.GetElement(selectedIds.First());
+
+            //TaskDialog.Show("Debug", elem.GetType().Name);
+
+            if (elem.GetType().Name != "Stairs")
+            {
+                TaskDialog.Show("Error", "Please select a stair");
+                return Result.Failed;
+            }
+
+            // get the name of selected room
+            string selectedRoomName = elem.LookupParameter("IfcName").AsString();
+
+
+            
+
+            //get room history data 
+            double[] dataX = new double[] { };
+            double[] dataY = new double[] { };
+            string occupantCountHistory = elem.LookupParameter("occupantCountHistory").AsString();
+
+            if (occupantCountHistory == "n.a" || occupantCountHistory == "")
+            {
+                TaskDialog.Show("Error", "No data available");
+                return Result.Failed;
+            }
+
+            // Init transaction 
+            var tx = new Transaction(doc);
+            tx.Start("Export IFC");
+
+            // Parse occupantCountHistory
+            string[] rows = occupantCountHistory.Split(';');
+            foreach (string r in rows)
+            {
+                string[] cols = r.Split(',');
+                double t = Double.Parse(cols[0]);
+                double rem = Double.Parse(cols[1]);
+
+                dataX = dataX.Concat(new double[] { t }).ToArray();
+                dataY = dataY.Concat(new double[] { rem }).ToArray();
+            }
+
+
+            string label = selectedRoomName;
+
+            string title = "Number of Occupants in stair : " + selectedRoomName;
+            string XLabel = "Time in seconds";
+            string YLabel = "Number of Occupants";
+            // Init plotting from object and display
+            f.initPlot(dataX, dataY, label, title, XLabel, YLabel);
 
             f.Show();
 
@@ -150,74 +349,62 @@ namespace Evac4Bim
             var uiapp = commandData.Application;
             var doc = uidoc.Document;
             var app = commandData.Application.Application;
+            Element projInfo = doc.ProjectInformation as Element;
 
 
-            var tx = new Transaction(doc);
-            tx.Start("Export IFC");
-
+           
 
             Figure f = new Figure();
             Figure f2 = new Figure();
 
-            
-            // get the  csv file
+            //get room history data 
+            double[] dataX = new double[] { }; 
+            double[] remaining = new double[] { };
+            double[] exited = new double[] { };
+            string occupantCountHistory = projInfo.LookupParameter("TotalOccupantCountHistory").AsString();
 
-            Element projInfo = doc.ProjectInformation as Element;
-            string pth = projInfo.LookupParameter("ResultsFolderPath").AsString();
-            string[] contents = null;
-            string[] files = Directory.GetFiles(pth, "*_rooms.csv"); // search for the file
-            string path = files.First();
-
-            try
+            if (occupantCountHistory == "n.a" || occupantCountHistory == "")
             {
-                contents = File.ReadAllText(path).Split('\n');
-
-            }
-            catch
-            {
-                TaskDialog.Show("Error", "The shared file could not be opened");
+                TaskDialog.Show("Error", "No data available");
                 return Result.Failed;
             }
 
+            // Init transaction 
+            var tx = new Transaction(doc);
+            tx.Start("Export IFC");
 
-            var csv = from line in contents
-                      where !String.IsNullOrEmpty(line)
-                      select line.Split(',').ToArray();
+            // Parse occupantCountHistory
+            string[] rows = occupantCountHistory.Split(';');
+            foreach (string r in rows)
+            {
+                string[] cols = r.Split(',');
+                double t = Double.Parse(cols[0]);
+                double rem = Double.Parse(cols[1]);
+                double ext = Double.Parse(cols[2]);
+               
+                dataX = dataX.Concat(new double[] { t }).ToArray();
+                remaining = remaining.Concat(new double[] { rem }).ToArray();
+                exited = exited.Concat(new double[] { ext }).ToArray();
+            }
 
-                
-            // get header
-            List<string> header = csv.FirstOrDefault().ToList();
 
-            // get time 
-            List<string> time = CmdPlotChartsUtils.getColumn(0, csv.Skip(1));
 
-            // get column index where data is stored  
-            int idx = header.IndexOf("\"" + "Remaining (Total)" + "\"");
-            List<string> roomUsage = CmdPlotChartsUtils.getColumn(idx, csv.Skip(1));
-
-            double[] dataX = CmdPlotChartsUtils.convertToDoubleArray(time);
-            double[] dataY = CmdPlotChartsUtils.convertToDoubleArray(roomUsage);
+            
             string label = "Remaining (Total)";
-
             string title = "Number of Occupants in Total";
             string XLabel = "Time in seconds";
             string YLabel = "Number of Occupants";
-            f.initPlot(dataX, dataY, label, title, XLabel, YLabel);
+            f.initPlot(dataX, remaining, label, title, XLabel, YLabel);
 
             f.Show();
 
 
-            // get column index where data is stored  
-            int idx2 = header.IndexOf("\"" + "Exited (Total)" + "\"");
-            List<string> roomUsage2 = CmdPlotChartsUtils.getColumn(idx2, csv.Skip(1)); 
             
-            double[] dataY2 = CmdPlotChartsUtils.convertToDoubleArray(roomUsage2);
             string label2 = "Exited (Total)";
-
             string title2 = "Number of Occupants Who Exited";
             string XLabel2 = "Time in seconds";
             string YLabel2 = "Number of Occupants";
-            f2.initPlot(dataX, dataY2, label2, title2, XLabel2, YLabel2);
+            f2.initPlot(dataX, exited, label2, title2, XLabel2, YLabel2);
 
             f2.Show();
 
@@ -233,61 +420,9 @@ namespace Evac4Bim
     }
 
 
-    /// <summary>
-    /// Class containing some utility methods
-    /// </summary>
-    public class CmdPlotChartsUtils
-    {
-        /// <summary>
-        /// Retrieve content of a specific column 
-        /// </summary>
-        /// <param name="index">index of a column</param>
-        /// <param name="csv">csv file content</param>
-        /// <returns></returns>
-        public static List<string> getColumn(int index, IEnumerable<string[]> csv)
-        {
-            List<string> res = new List<string>();
-
-            if (index >= 0)
-            {
-                var columnQuery =
-                from line in csv
-                where !String.IsNullOrEmpty(line[index].ToString())
-                select Convert.ToString(line[index]);
-
-                res = columnQuery.ToList();
-            }
-
-
-
-            return res;
-        }
-
-        /// <summary>
-        /// Convert string array of number to an array of double
-        /// </summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static double[] convertToDoubleArray(List<string> list)
-        {
-
-
-            double[] array = new double[] { };
-
-
-
-            foreach (string el in list)
-            {
-
-                array = array.Concat(new double[] { double.Parse(el) }).ToArray();
-
-
-            }
-
-            return array;
-        }
-
-    }
+    
+        
+    
 
 
     

@@ -38,21 +38,28 @@ namespace Evac4Bim
             
             const string SHARED_PARAMETER_FILE_NAME = @"\shared-pramas-list.csv";
 
-            // Parameters will be stored under PG_FIRE_PROTECTION group in the Revit UI
-            const BuiltInParameterGroup PARAM_GROUP = BuiltInParameterGroup.PG_FIRE_PROTECTION;
+            // Parameter group in the Revit UI
+            
+            IDictionary<string, BuiltInParameterGroup> ParameterGroupDict = new Dictionary<string, BuiltInParameterGroup>();
+            ParameterGroupDict.Add("PG_IFC", BuiltInParameterGroup.PG_IFC); 
+            ParameterGroupDict.Add("PG_FIRE_PROTECTION", BuiltInParameterGroup.PG_FIRE_PROTECTION); 
+        
 
             // create a dictionnary to convert category names (retrieved from csv file) into enumerations
             IDictionary<string, BuiltInCategory> BuiltInCategoryDict = new Dictionary<string, BuiltInCategory>();
             BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors); //adding a key/value using the Add() method
             BuiltInCategoryDict.Add("OST_Rooms", BuiltInCategory.OST_Rooms);
             BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
+            BuiltInCategoryDict.Add("OST_Levels", BuiltInCategory.OST_Levels);
+            BuiltInCategoryDict.Add("OST_Stairs", BuiltInCategory.OST_Stairs);
 
 
             // create a dictionnary to convert param types (retrieved from csv file) into enumerations
             IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();
+            ParameterTypeDict.Add("YesNo", ParameterType.YesNo); //adding a key/value using the Add() method
             ParameterTypeDict.Add("TEXT", ParameterType.Text); //adding a key/value using the Add() method
             ParameterTypeDict.Add("NUMBER", ParameterType.Number); //adding a key/value using the Add() method
-
+            
 
             string paramList = "";
             string msg = "The following parameters were loaded and configured succesfuly :";
@@ -144,8 +151,13 @@ namespace Evac4Bim
                 string name = row[0]; // leftmost column                
                 string type = row[1];
                 string target = row[2];
-                string description = row[3];
-                string user_modifiable = row[4];
+                string paramGroup = row[3];
+                string description = row[4];
+                string user_modifiable = row[5];
+                
+                
+
+                //TaskDialog.Show("Debug", type);
 
                 // create definition 
                 // create an instance definition in definition group 
@@ -181,19 +193,19 @@ namespace Evac4Bim
                 //Create an instance of InstanceBinding
                 InstanceBinding instanceBinding = app.Create.NewInstanceBinding(cats);
 
-
+                
                 // Bind the definitions to the document
                 // but check if param already exists ! 
 
 
-                if (ContainsParameterName(bindingMap, option.Name, PARAM_GROUP, option.Type))
+                if (ContainsParameterName(bindingMap, option.Name, ParameterGroupDict[paramGroup], option.Type))
                 {
                     continue;
 
                 }
                 else
                 {
-                    bindingMap.Insert(def, instanceBinding, PARAM_GROUP);
+                    bindingMap.Insert(def, instanceBinding, ParameterGroupDict[paramGroup]);
 
                 }
 
@@ -236,6 +248,7 @@ namespace Evac4Bim
                 if (it.Key.Name == paramName && it.Key.ParameterGroup == paramGroup && it.Key.ParameterType == paramType)
                 {
                     return true;
+                    
                 }
 
 

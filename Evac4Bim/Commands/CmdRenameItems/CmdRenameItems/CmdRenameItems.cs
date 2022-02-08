@@ -37,7 +37,12 @@ namespace Evac4Bim
             // collect elements
             IList<Element> doors = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToElements();
             List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room) ).ToList();
+            // collect stairs
+            IList<Element> stairs = new FilteredElementCollector(doc).OfClass(typeof(Stairs)).ToElements();
 
+
+
+            TaskDialog.Show("Debug", stairs.Count().ToString());
 
             //Loop and rename 
 
@@ -73,8 +78,22 @@ namespace Evac4Bim
 
             }
 
+            // 1. Stairs : Stair_<elemID>
+            int stairCounter = 0;
+            foreach (Element s in stairs)
+            {
+                Parameter ifcName = s.LookupParameter("IfcName");
 
-            TaskDialog.Show("Success", doorCounter.ToString()+" door(s) and "+ roomCounter +" room(s) " + "have been renamed");
+
+                if (!ifcName.HasValue)
+                {
+                    ifcName.Set("Stair_" + s.Id.ToString());
+                    stairCounter++;
+                }
+
+            }
+
+            TaskDialog.Show("Success", doorCounter.ToString()+" door(s) and "+ roomCounter +" room(s) and " + stairCounter.ToString()+ " stairs have been renamed");
 
 
             tx.Commit();
