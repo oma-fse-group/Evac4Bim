@@ -11,7 +11,13 @@ using System.Windows.Forms;
 using System.Reflection;
 using Autodesk.Revit.UI.Selection;
 using CmdBuildingGroup;
-
+/// <summary>
+/// This class allows the user to define the building group of the model 
+/// Then, it changes related properties wich depend on the building group 
+/// such as max travel distance and width per occupant 
+/// Building groups are stored in a csv file 
+/// As well as MaxAccessTravelDistance and other properties 
+/// </summary>
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]

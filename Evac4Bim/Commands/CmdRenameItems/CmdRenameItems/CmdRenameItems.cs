@@ -42,7 +42,7 @@ namespace Evac4Bim
 
 
 
-            TaskDialog.Show("Debug", stairs.Count().ToString());
+            //TaskDialog.Show("Debug", stairs.Count().ToString());
 
             //Loop and rename 
 

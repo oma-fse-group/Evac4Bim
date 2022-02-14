@@ -52,7 +52,8 @@ namespace Evac4Bim
             BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
             BuiltInCategoryDict.Add("OST_Levels", BuiltInCategory.OST_Levels);
             BuiltInCategoryDict.Add("OST_Stairs", BuiltInCategory.OST_Stairs);
-
+             
+  
 
             // create a dictionnary to convert param types (retrieved from csv file) into enumerations
             IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();

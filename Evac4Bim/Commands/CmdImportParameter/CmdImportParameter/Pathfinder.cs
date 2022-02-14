@@ -156,10 +156,10 @@ namespace Evac4Bim
             EvClass.stairs = new List<Stair>();
 
             // Init simulation summary 
-            EvClass.SimulationSummary = "n.a";
-            EvClass.SoftwareName = "Pathfinder";
-            EvClass.SoftwareVersion = "n.a";
-            EvClass.SoftwareVendor = "https://www.thunderheadeng.com/pathfinder/";
+            EvClass.EvacuationSimulationBrief = "n.a";
+            EvClass.EvacuationModelName = "Pathfinder";
+            EvClass.EvacuationModelVersion = "n.a";
+            EvClass.EvacuationModelVendor = "https://www.thunderheadeng.com/pathfinder/";
 
 
             // Get csv files 
@@ -232,15 +232,15 @@ namespace Evac4Bim
                     Stair stair = new Stair();
                     stair.name = r.room;                    
                     stair.id = stair.name.Split('_').Last();
-                    stair.first_in = r.first_in;
-                    stair.last_out = r.last_out;
+                    stair.FirstOccupantInTime = r.first_in;
+                    stair.LastOccupantOutTime = r.last_out;
 
-                    stair.flow_avg = "NaN"; //  Does not exist in Pathfinder
+                    stair.AverageOccupantFlowrate = "NaN"; //  Does not exist in Pathfinder
 
 
                     
                     // Write stair history 
-                    stair.occupantCountHistory = "";
+                    stair.OccupancyHistory = "";
                     // get column index number of a room  (by its name)
                     string selectedRoomName = stair.name;
                     int idx = header.IndexOf("\"" + selectedRoomName + "\"");
@@ -248,10 +248,10 @@ namespace Evac4Bim
                                                                           // loop through time and usage columns 
                     for (int i = 0; i < time.Count(); i++)
                     {
-                        stair.occupantCountHistory += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(roomUsage.ElementAt(i)).ToString() + ";";
+                        stair.OccupancyHistory += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(roomUsage.ElementAt(i)).ToString() + ";";
 
                     }
-                    stair.occupantCountHistory = stair.occupantCountHistory.Remove(stair.occupantCountHistory.Length - 1);
+                    stair.OccupancyHistory = stair.OccupancyHistory.Remove(stair.OccupancyHistory.Length - 1);
 
 
                     // Append stair list
@@ -262,15 +262,15 @@ namespace Evac4Bim
                 {
                     Room room = new Room();
                     room.name = r.room;
-                    room.initial_occupants_number = r.total_use; // replace with actual initial number - before movmeent starts
+                    room.InitialOccupancyNumber = r.total_use; // replace with actual initial number - before movmeent starts
                     room.id = room.name.Split('_').Last();
                     // Exceptions 
                     if (r.last_out == "") { r.last_out = "0"; }
-                    room.RSET = r.last_out;
+                    room.EvacuationTime = r.last_out;
 
 
                     // Write room history 
-                    room.occupantCountHistory = "";
+                    room.OccupancyHistory = "";
                     // get column index number of a room  (by its name)
                     string selectedRoomName = room.name;
                     int idx = header.IndexOf("\"" + selectedRoomName + "\"");
@@ -278,10 +278,10 @@ namespace Evac4Bim
                                                                           // loop through time and usage columns 
                     for (int i = 0; i < time.Count(); i++)
                     {
-                        room.occupantCountHistory += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(roomUsage.ElementAt(i)).ToString() + ";";
+                        room.OccupancyHistory += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(roomUsage.ElementAt(i)).ToString() + ";";
 
                     }
-                    room.occupantCountHistory = room.occupantCountHistory.Remove(room.occupantCountHistory.Length - 1);
+                    room.OccupancyHistory = room.OccupancyHistory.Remove(room.OccupancyHistory.Length - 1);
 
 
 
@@ -297,13 +297,13 @@ namespace Evac4Bim
                 door.name = d.door;
                 door.id = door.name.Split('_').Last();
 
-                door.first_in = d.first_in;
-                door.total_use = d.total_use;
-                door.last_out = d.last_out;
-                door.flow_avg = d.flow_avg;
+                door.FirstOccupantInTime = d.first_in;
+                door.TotalUse = d.total_use;
+                door.LastOccupantOutTime = d.last_out;
+                door.AverageOccupantFlowrate = d.flow_avg;
 
                 // Write door history 
-                door.doorFlowHistory = "";
+                door.DoorFlowrateHistory = "";
                 // get column index number of a room  (by its name)
                 string selectedName = door.name;                
                 int idx = headerDoor.IndexOf("\"" + selectedName + "\"");
@@ -334,10 +334,10 @@ namespace Evac4Bim
 
                     }
 
-                    door.doorFlowHistory +=  t.ToString()+ "," + flw.ToString() + ";";
+                    door.DoorFlowrateHistory +=  t.ToString()+ "," + flw.ToString() + ";";
 
                 }
-                door.doorFlowHistory = door.doorFlowHistory.Remove(door.doorFlowHistory.Length - 1);
+                door.DoorFlowrateHistory = door.DoorFlowrateHistory.Remove(door.DoorFlowrateHistory.Length - 1);
 
 
                 EvClass.doors.Add(door);
@@ -353,21 +353,21 @@ namespace Evac4Bim
             List<string> totalExited = getColumn(idx3, csv.Skip(1));
 
             Building b = new Building();
-            b.RSET = this.completion_times_all.max.time;
-            b.max_walk_dist = this.movement_distances_all.max.distance;
-            b.min_walk_dist = this.movement_distances_all.min.distance;
-            b.avg_walk_dist = this.movement_distances_all.average;
-            b.avg_exit_time = this.completion_times_all.average;
-            b.min_exit_time = this.completion_times_all.min.time;
+            b.EvacuationTimeOverall = this.completion_times_all.max.time;
+            b.MaxTravelDistance = this.movement_distances_all.max.distance;
+            b.MinTravelDistance = this.movement_distances_all.min.distance;
+            b.AverageTravelDistance = this.movement_distances_all.average;
+            b.AverageEvacuationTime = this.completion_times_all.average;
+            b.MinEvacuationTime = this.completion_times_all.min.time;
 
             for (int i = 0; i < time.Count(); i++)
             {
-                b.TotalOccupantCountHistory += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(totalRemaining.ElementAt(i)).ToString() + "," + Double.Parse(totalExited.ElementAt(i)).ToString() + ";";
+                b.OccupancyHistoryOverall += Double.Parse(time.ElementAt(i)).ToString() + "," + Double.Parse(totalRemaining.ElementAt(i)).ToString() + "," + Double.Parse(totalExited.ElementAt(i)).ToString() + ";";
 
             }
 
             // remove last ; 
-            b.TotalOccupantCountHistory = b.TotalOccupantCountHistory.Remove(b.TotalOccupantCountHistory.Length-1);
+            b.OccupancyHistoryOverall = b.OccupancyHistoryOverall.Remove(b.OccupancyHistoryOverall.Length-1);
 
             EvClass.build = b;
 

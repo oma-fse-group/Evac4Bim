@@ -84,18 +84,19 @@ namespace Evac4Bim
                 stairScheduleName = stairScheduleName + " - " + stairScheduleNameIndex.ToString();
             }
 
+            // Populate schedule with fields 
 
-            List<string> roomParamList = new List<string> { "Level", "Name", "IfcName" , "Area", "RSET", "InitialOccupantNumber"};
+            List<string> roomParamList = new List<string> { "Level", "Name", "IfcName" , "Area", "EvacuationTime", "InitialOccupancyNumber" };
             ViewSchedule roomSchedule = createSchedule(doc, roomParamList, roomScheduleName, BuiltInCategory.OST_Rooms);
 
-            List<string> doorParamList = new List<string> { "Level", "IfcName",  "Room Name", "Function", "Width", "FlowAvg","FirstIn","LastOut","TotalUse", };
+            List<string> doorParamList = new List<string> { "Level", "IfcName",  "Room Name", "Function", "Width", "AverageOccupantFlowrate", "FirstOccupantInTime", "LastOccupantOutTime", "TotalUse", };
             ViewSchedule doorSchedule = createSchedule(doc, doorParamList, doorScheduleName, BuiltInCategory.OST_Doors);
 
 
-            List<string> projInfoParamList = new List<string> { "Building Name", "Project Name", "ResultsFolderPath", "SoftwareName", "SoftwareVersion", "SoftwareVendor", "SimulationSummary", "SimulationSummary", "Author", "Client Name", "TotalRSET", "AvgWalkDistance", "MaxWalkDistance", "MinWalkDistance" };
+            List<string> projInfoParamList = new List<string> { "Building Name", "Project Name", "ResultsFolderPath", "EvacuationModelName", "EvacuationModelVersion", "EvacuationModelVendor", "EvacuationSimulationBrief",  "Author", "Client Name", "EvacuationTimeOverall", "AverageTravelDistance", "MaxTravelDistance", "MinTravelDistance", "AverageEvacuationTime", "MinEvacuationTime" };
             ViewSchedule projInfoSchedule = createSchedule(doc, projInfoParamList, projInfoScheduleName, BuiltInCategory.INVALID);
 
-            List<string> stairParamList = new List<string> { "IfcName","Top Level","Base Level", "FirstIn","LastOut","FlowAvg" };
+            List<string> stairParamList = new List<string> { "IfcName","Top Level","Base Level", "FirstOccupantInTime", "LastOccupantOutTime", "AverageOccupantFlowrate" };
             ViewSchedule stairSchedule = createSchedule(doc, stairParamList, stairScheduleName, BuiltInCategory.OST_Stairs);
 
 

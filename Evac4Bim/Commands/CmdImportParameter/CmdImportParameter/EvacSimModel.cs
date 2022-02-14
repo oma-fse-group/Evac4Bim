@@ -8,7 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 /// <summary>
 /// Standard interface for storing egress simulation data 
-/// Also responsible for writiing data into corresponding project parameters
+/// Also responsible for writing data into corresponding project parameters
+/// In case of single run simulation : one innstance is created, initialized by Pathfinder.cs then its data written to the model 
+/// In case of multiple runs, multiple instances are created and stored in a list List<EvacSimModel> 
+/// Then, the list is parsed and data is consolidated in a single and final instance
+/// Mupltiple data is translated into distribution with mean,min,max,and stddev 
 /// </summary>
 
 
@@ -21,32 +25,31 @@ namespace Evac4Bim
         /// Class representing a single room 
         /// <parameter>RSET : time to last occupant leaving (seconds)</parameter>
         /// </summary>
-        public string initial_occupants_number { get; set; }
-        public string RSET { get; set; }
-        public List<Double> RSET_array = new List<Double>();
+        public string InitialOccupancyNumber { get; set; }
+        public string EvacuationTime { get; set; }
+        public List<Double> EvacuationTime_array = new List<Double>();
         public string name { get; set; }
         public string id { get; set; }
 
-        public string occupantCountHistory { get; set; } //tuple with <time , remaining  > ;
+        public string OccupancyHistory { get; set; } //tuple with <time , remaining  > ;
 
     }
 
     public class Stair
     {
 
+        public string FirstOccupantInTime { get; set; }
+        public List<Double> FirstOccupantInTime_array = new List<Double>();
 
-        public string first_in { get; set; }
-        public List<Double> first_in_array = new List<Double>();
+        public string LastOccupantOutTime { get; set; }
+        public List<Double> LastOccupantOutTime_array = new List<Double>();
 
-        public string last_out { get; set; }
-        public List<Double> last_out_array = new List<Double>();
-
-        public string flow_avg { get; set; }
-        public List<Double> flow_avg_array = new List<Double>();
+        public string AverageOccupantFlowrate { get; set; }
+        public List<Double> AverageOccupantFlowrate_array = new List<Double>();
 
         public string name { get; set; }
         public string id { get; set; }
-        public string occupantCountHistory { get; set; } //tuple with <time , remaining  > ;
+        public string OccupancyHistory { get; set; } //tuple with <time , remaining  > ;
 
     }
     public class Door
@@ -57,17 +60,17 @@ namespace Evac4Bim
         /// <parameter>first_in : time of first occupant crossing door (seconds)</parameter>
         /// <parameter>first_in : time of last occupant crossing door (seconds)</parameter>
         /// </summary> 
-        public string total_use { get; set; }
-        public List<Double> total_use_array = new List<Double>();
-        public string first_in { get; set; }
-        public List<Double> first_in_array = new List<Double>();
-        public string last_out { get; set; }
-        public List<Double> last_out_array = new List<Double>();
-        public string flow_avg { get; set; }
-        public List<Double> flow_avg_array = new List<Double>();
+        public string TotalUse { get; set; }
+        public List<Double> TotalUse_array = new List<Double>();
+        public string FirstOccupantInTime { get; set; }
+        public List<Double> FirstOccupantInTime_array = new List<Double>();
+        public string LastOccupantOutTime { get; set; }
+        public List<Double> LastOccupantOutTime_array = new List<Double>();
+        public string AverageOccupantFlowrate { get; set; }
+        public List<Double> AverageOccupantFlowrate_array = new List<Double>();
         public string name { get; set; }
         public string id { get; set; }
-        public string doorFlowHistory { get; set; }
+        public string DoorFlowrateHistory { get; set; }
 
     }
 
@@ -80,19 +83,19 @@ namespace Evac4Bim
         /// <parameter>max_walk_dist : walking distance (meters)</parameter>
         /// <parameter>avg_walk_dist : walking distance (meters)</parameter>
         /// </summary>
-        public string RSET { get; set; }
-        public List<Double> RSET_array = new List<Double>();
-        public string min_walk_dist { get; set; }
-        public List<Double> min_walk_dist_array = new List<Double>();
-        public string max_walk_dist { get; set; }
-        public List<Double> max_walk_dist_array = new List<Double>();
-        public string avg_walk_dist { get; set; }
-        public List<Double> avg_walk_dist_array = new List<Double>();
-        public string min_exit_time { get; set; }
-        public List<Double> min_exit_time_array = new List<Double>();
-        public string avg_exit_time { get; set; }
-        public List<Double> avg_exit_time_array = new List<Double>();
-        public string TotalOccupantCountHistory { get; set; } //triplet with <time , remaining , exited > ;
+        public string EvacuationTimeOverall { get; set; }
+        public List<Double> EvacuationTimeOverall_array = new List<Double>();
+        public string MinTravelDistance { get; set; }
+        public List<Double> MinTravelDistance_array = new List<Double>();
+        public string MaxTravelDistance { get; set; }
+        public List<Double> MaxTravelDistance_array = new List<Double>();
+        public string AverageTravelDistance { get; set; }
+        public List<Double> AverageTravelDistance_array = new List<Double>();
+        public string MinEvacuationTime { get; set; }
+        public List<Double> MinEvacuationTime_array = new List<Double>();
+        public string AverageEvacuationTime { get; set; }
+        public List<Double> AverageEvacuationTime_array = new List<Double>();
+        public string OccupancyHistoryOverall { get; set; } //triplet with <time , remaining , exited > ;
 
     }
 
@@ -102,10 +105,10 @@ namespace Evac4Bim
         public List<Door> doors { get; set; }
         public List<Stair> stairs { get; set; }
         public Building build { get; set; }
-        public string SoftwareName { get; set; }
-        public string SoftwareVersion { get; set; }
-        public string SimulationSummary { get; set; }
-        public string SoftwareVendor { get; set; }
+        public string EvacuationModelName { get; set; }
+        public string EvacuationModelVersion { get; set; }
+        public string EvacuationSimulationBrief { get; set; }
+        public string EvacuationModelVendor { get; set; }
 
         public bool WriteIntoRevitModel(Document doc)
         {
@@ -142,9 +145,9 @@ namespace Evac4Bim
                 // set parameters
                 try
                 {
-                    ele.LookupParameter("RSET").Set(room.RSET.ToString());
-                    ele.LookupParameter("InitialOccupantNumber").Set(room.initial_occupants_number.ToString());
-                    ele.LookupParameter("occupantCountHistory").Set(room.occupantCountHistory.ToString());
+                    ele.LookupParameter("EvacuationTime").Set(room.EvacuationTime.ToString());
+                    ele.LookupParameter("InitialOccupancyNumber").Set(room.InitialOccupancyNumber.ToString());
+                    ele.LookupParameter("OccupancyHistory").Set(room.OccupancyHistory.ToString());
 
 
                 }
@@ -182,11 +185,11 @@ namespace Evac4Bim
                 // set parameters
                 try
                 {
-                    ele.LookupParameter("FirstIn").Set(door.first_in.ToString());
-                    ele.LookupParameter("LastOut").Set(door.last_out.ToString());
-                    ele.LookupParameter("FlowAvg").Set(door.flow_avg.ToString());
-                    ele.LookupParameter("TotalUse").Set(door.total_use.ToString());
-                    ele.LookupParameter("doorFlowHistory").Set(door.doorFlowHistory.ToString());
+                    ele.LookupParameter("FirstOccupantInTime").Set(door.FirstOccupantInTime.ToString());
+                    ele.LookupParameter("LastOccupantOutTime").Set(door.LastOccupantOutTime.ToString());
+                    ele.LookupParameter("AverageOccupantFlowrate").Set(door.AverageOccupantFlowrate.ToString());
+                    ele.LookupParameter("TotalUse").Set(door.TotalUse.ToString());
+                    ele.LookupParameter("DoorFlowrateHistory").Set(door.DoorFlowrateHistory.ToString());
 
                 }
                 catch
@@ -200,6 +203,8 @@ namespace Evac4Bim
             // TaskDialog.Show("Debug", this.stairs.Count().ToString());
             foreach (Stair stair in this.stairs)
             {
+
+                
 
                 Element ele = null;
                 ElementId eleID = null;
@@ -221,13 +226,18 @@ namespace Evac4Bim
                     continue;
                 }
 
+                
+
                 // set parameters
                 try
                 {
-                    ele.LookupParameter("FirstIn").Set(stair.first_in.ToString());
-                    ele.LookupParameter("LastOut").Set(stair.last_out.ToString());
-                    ele.LookupParameter("FlowAvg").Set(stair.flow_avg.ToString());
-                    ele.LookupParameter("occupantCountHistory").Set(stair.occupantCountHistory.ToString());
+                    
+                    ele.LookupParameter("FirstOccupantInTime").Set(stair.FirstOccupantInTime.ToString());
+                    ele.LookupParameter("LastOccupantOutTime").Set(stair.LastOccupantOutTime.ToString());
+                    ele.LookupParameter("AverageOccupantFlowrate").Set(stair.AverageOccupantFlowrate.ToString());
+                    ele.LookupParameter("OccupancyHistory").Set(stair.OccupancyHistory.ToString());
+
+                    
                 }
                 catch
                 {
@@ -238,21 +248,21 @@ namespace Evac4Bim
 
             // building - proj info
             Element projInfo = doc.ProjectInformation as Element;
-            projInfo.LookupParameter("TotalRSET").Set(this.build.RSET.ToString());
-            projInfo.LookupParameter("MaxWalkDistance").Set(this.build.max_walk_dist.ToString());
-            projInfo.LookupParameter("AvgWalkDistance").Set(this.build.avg_walk_dist.ToString());
-            projInfo.LookupParameter("MinWalkDistance").Set(this.build.min_walk_dist.ToString());
+            projInfo.LookupParameter("EvacuationTimeOverall").Set(this.build.EvacuationTimeOverall.ToString());
+            projInfo.LookupParameter("MaxTravelDistance").Set(this.build.MaxTravelDistance.ToString());
+            projInfo.LookupParameter("AverageTravelDistance").Set(this.build.AverageTravelDistance.ToString());
+            projInfo.LookupParameter("MinTravelDistance").Set(this.build.MinTravelDistance.ToString());
 
-            projInfo.LookupParameter("MinExitTime").Set(this.build.min_exit_time.ToString());
-            projInfo.LookupParameter("AvgExitTime").Set(this.build.avg_exit_time.ToString());
+            projInfo.LookupParameter("MinEvacuationTime").Set(this.build.MinEvacuationTime.ToString());
+            projInfo.LookupParameter("AverageEvacuationTime").Set(this.build.AverageEvacuationTime.ToString());
 
-            projInfo.LookupParameter("TotalOccupantCountHistory").Set(this.build.TotalOccupantCountHistory.ToString());
+            projInfo.LookupParameter("OccupancyHistoryOverall").Set(this.build.OccupancyHistoryOverall.ToString());
 
             // Software summary 
-            projInfo.LookupParameter("SimulationSummary").Set(this.SimulationSummary.ToString());
-            projInfo.LookupParameter("SoftwareName").Set(this.SoftwareName.ToString());
-            projInfo.LookupParameter("SoftwareVersion").Set(this.SoftwareVersion.ToString());
-            projInfo.LookupParameter("SoftwareVendor").Set(this.SoftwareVendor.ToString());
+            projInfo.LookupParameter("EvacuationSimulationBrief").Set(this.EvacuationSimulationBrief.ToString());
+            projInfo.LookupParameter("EvacuationModelName").Set(this.EvacuationModelName.ToString());
+            projInfo.LookupParameter("EvacuationModelVersion").Set(this.EvacuationModelVersion.ToString());
+            projInfo.LookupParameter("EvacuationModelVendor").Set(this.EvacuationModelVendor.ToString());
 
 
             return true;
@@ -275,10 +285,10 @@ namespace Evac4Bim
             foreach (EvacSimModel evc in EvacEvClassM)
             {
                 // Init simulation summary with a default value
-                mergedModel.SimulationSummary = evc.SimulationSummary;
-                mergedModel.SoftwareName = evc.SoftwareName;
-                mergedModel.SoftwareVersion = evc.SoftwareVersion;
-                mergedModel.SoftwareVendor = evc.SoftwareVendor;
+                mergedModel.EvacuationSimulationBrief = evc.EvacuationSimulationBrief;
+                mergedModel.EvacuationModelName = evc.EvacuationModelName;
+                mergedModel.EvacuationModelVersion = evc.EvacuationModelVersion;
+                mergedModel.EvacuationModelVendor = evc.EvacuationModelVendor;
 
 
                 foreach (Room r in evc.rooms)
@@ -296,7 +306,7 @@ namespace Evac4Bim
                     // else, retrieve it 
                     Room mergedRoom = roomList[r.name];
                     // append / update its properties                     
-                    mergedRoom.RSET_array.Add(Double.Parse(r.RSET));
+                    mergedRoom.EvacuationTime_array.Add(Double.Parse(r.EvacuationTime));
 
 
 
@@ -317,9 +327,9 @@ namespace Evac4Bim
                     // else, retrieve it 
                     Stair mergedStair = stairList[r.name];
                     // append / update its properties
-                    mergedStair.first_in_array.Add(Double.Parse(r.first_in));
-                    mergedStair.last_out_array.Add(Double.Parse(r.last_out));
-                    mergedStair.flow_avg_array.Add(Double.Parse(r.flow_avg));
+                    mergedStair.FirstOccupantInTime_array.Add(Double.Parse(r.FirstOccupantInTime));
+                    mergedStair.LastOccupantOutTime_array.Add(Double.Parse(r.LastOccupantOutTime));
+                    mergedStair.AverageOccupantFlowrate_array.Add(Double.Parse(r.AverageOccupantFlowrate));
 
 
 
@@ -338,22 +348,22 @@ namespace Evac4Bim
                     // else, retrieve it 
                     Door mergedDoor = doorList[r.name];
                     // append / update its properties
-                    mergedDoor.first_in_array.Add(Double.Parse(r.first_in));
-                    mergedDoor.last_out_array.Add(Double.Parse(r.last_out));
-                    mergedDoor.flow_avg_array.Add(Double.Parse(r.flow_avg));
-                    mergedDoor.total_use_array.Add(Double.Parse(r.total_use));
+                    mergedDoor.FirstOccupantInTime_array.Add(Double.Parse(r.FirstOccupantInTime));
+                    mergedDoor.LastOccupantOutTime_array.Add(Double.Parse(r.LastOccupantOutTime));
+                    mergedDoor.AverageOccupantFlowrate_array.Add(Double.Parse(r.AverageOccupantFlowrate));
+                    mergedDoor.TotalUse_array.Add(Double.Parse(r.TotalUse));
 
 
                 }
 
 
                 // Building info
-                mergedBuild.RSET_array.Add(Double.Parse(evc.build.RSET));
-                mergedBuild.min_walk_dist_array.Add(Double.Parse(evc.build.min_walk_dist));
-                mergedBuild.max_walk_dist_array.Add(Double.Parse(evc.build.max_walk_dist));
-                mergedBuild.avg_walk_dist_array.Add(Double.Parse(evc.build.avg_walk_dist));
-                mergedBuild.min_exit_time_array.Add(Double.Parse(evc.build.min_exit_time));
-                mergedBuild.avg_exit_time_array.Add(Double.Parse(evc.build.avg_exit_time));
+                mergedBuild.EvacuationTimeOverall_array.Add(Double.Parse(evc.build.EvacuationTimeOverall));
+                mergedBuild.MinTravelDistance_array.Add(Double.Parse(evc.build.MinTravelDistance));
+                mergedBuild.MaxTravelDistance_array.Add(Double.Parse(evc.build.MaxTravelDistance));
+                mergedBuild.AverageTravelDistance_array.Add(Double.Parse(evc.build.AverageTravelDistance));
+                mergedBuild.MinEvacuationTime_array.Add(Double.Parse(evc.build.MinEvacuationTime));
+                mergedBuild.AverageEvacuationTime_array.Add(Double.Parse(evc.build.AverageEvacuationTime));
 
             }
 
@@ -366,10 +376,10 @@ namespace Evac4Bim
                 Room final = new Room();
                 final.name = r.name;
                 final.id = r.id;
-                final.initial_occupants_number = "n.a";// cannot be processed yet
-                final.occupantCountHistory = "n.a"; // cannot be processed yet
+                final.InitialOccupancyNumber = "n.a";// cannot be processed yet
+                final.OccupancyHistory = "n.a"; // cannot be processed yet
                 // process the array 
-                final.RSET = procArray(r.RSET_array);
+                final.EvacuationTime = procArray(r.EvacuationTime_array);
 
                 //TaskDialog.Show(final.name, final.RSET);
 
@@ -384,11 +394,11 @@ namespace Evac4Bim
                 Stair final = new Stair();
                 final.name = r.name;
                 final.id = r.id;
-                final.occupantCountHistory = "n.a"; // cannot be processed yet
+                final.OccupancyHistory = "n.a"; // cannot be processed yet
                 // process the array 
-                final.first_in = procArray(r.first_in_array);
-                final.last_out = procArray(r.last_out_array);
-                final.flow_avg = procArray(r.flow_avg_array);
+                final.FirstOccupantInTime = procArray(r.FirstOccupantInTime_array);
+                final.LastOccupantOutTime = procArray(r.LastOccupantOutTime_array);
+                final.AverageOccupantFlowrate = procArray(r.AverageOccupantFlowrate_array);
 
                 //TaskDialog.Show(final.name, final.RSET);
 
@@ -402,11 +412,11 @@ namespace Evac4Bim
                 final.name = r.name;
                 final.id = r.id;
                 // process the array 
-                final.first_in = procArray(r.first_in_array);
-                final.last_out = procArray(r.last_out_array);
-                final.flow_avg = procArray(r.flow_avg_array);
-                final.total_use = procArray(r.total_use_array);
-                final.doorFlowHistory = "n.a"; // cannot be processed yet
+                final.FirstOccupantInTime = procArray(r.FirstOccupantInTime_array);
+                final.LastOccupantOutTime = procArray(r.LastOccupantOutTime_array);
+                final.AverageOccupantFlowrate = procArray(r.AverageOccupantFlowrate_array);
+                final.TotalUse = procArray(r.TotalUse_array);
+                final.DoorFlowrateHistory = "n.a"; // cannot be processed yet
 
                 //TaskDialog.Show(final.name, final.RSET);
 
@@ -417,13 +427,13 @@ namespace Evac4Bim
 
             // Building info
              
-            mergedBuild.RSET = procArray(mergedBuild.RSET_array);
-            mergedBuild.min_walk_dist = procArray(mergedBuild.min_walk_dist_array);
-            mergedBuild.max_walk_dist = procArray(mergedBuild.max_walk_dist_array);
-            mergedBuild.avg_walk_dist = procArray(mergedBuild.avg_walk_dist_array);
-            mergedBuild.min_exit_time = procArray(mergedBuild.min_exit_time_array);
-            mergedBuild.avg_exit_time = procArray(mergedBuild.avg_exit_time_array);
-            mergedBuild.TotalOccupantCountHistory = "n.a";
+            mergedBuild.EvacuationTimeOverall = procArray(mergedBuild.EvacuationTimeOverall_array);
+            mergedBuild.MinTravelDistance = procArray(mergedBuild.MinTravelDistance_array);
+            mergedBuild.MaxTravelDistance = procArray(mergedBuild.MaxTravelDistance_array);
+            mergedBuild.AverageTravelDistance = procArray(mergedBuild.AverageTravelDistance_array);
+            mergedBuild.MinEvacuationTime = procArray(mergedBuild.MinEvacuationTime_array);
+            mergedBuild.AverageEvacuationTime = procArray(mergedBuild.AverageEvacuationTime_array);
+            mergedBuild.OccupancyHistoryOverall = "n.a";
 
             mergedModel.build = mergedBuild;
 

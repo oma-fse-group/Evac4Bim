@@ -8,6 +8,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 /// <summary>
 /// This class create schedule in the revit UI
+/// This allows user to edit fields that are requried for the check
 /// </summary>
 
 

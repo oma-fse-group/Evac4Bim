@@ -44,6 +44,8 @@ namespace CmdEditOccupantProfiles
             this.buttonClose = new System.Windows.Forms.Button();
             this.buttonSave = new System.Windows.Forms.Button();
             this.buttonReset = new System.Windows.Forms.Button();
+            this.buttonAdd = new System.Windows.Forms.Button();
+            this.buttonRem = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // comboBox1
@@ -162,7 +164,7 @@ namespace CmdEditOccupantProfiles
             // buttonClose
             // 
             this.buttonClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonClose.Location = new System.Drawing.Point(456, 457);
+            this.buttonClose.Location = new System.Drawing.Point(550, 457);
             this.buttonClose.Name = "buttonClose";
             this.buttonClose.Size = new System.Drawing.Size(101, 39);
             this.buttonClose.TabIndex = 13;
@@ -173,7 +175,7 @@ namespace CmdEditOccupantProfiles
             // buttonSave
             // 
             this.buttonSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonSave.Location = new System.Drawing.Point(339, 457);
+            this.buttonSave.Location = new System.Drawing.Point(430, 457);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(101, 39);
             this.buttonSave.TabIndex = 14;
@@ -184,7 +186,7 @@ namespace CmdEditOccupantProfiles
             // buttonReset
             // 
             this.buttonReset.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonReset.Location = new System.Drawing.Point(221, 457);
+            this.buttonReset.Location = new System.Drawing.Point(60, 457);
             this.buttonReset.Name = "buttonReset";
             this.buttonReset.Size = new System.Drawing.Size(101, 39);
             this.buttonReset.TabIndex = 15;
@@ -192,11 +194,35 @@ namespace CmdEditOccupantProfiles
             this.buttonReset.UseVisualStyleBackColor = true;
             this.buttonReset.Click += new System.EventHandler(this.buttonReset_Click);
             // 
+            // buttonAdd
+            // 
+            this.buttonAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonAdd.Location = new System.Drawing.Point(550, 69);
+            this.buttonAdd.Name = "buttonAdd";
+            this.buttonAdd.Size = new System.Drawing.Size(43, 38);
+            this.buttonAdd.TabIndex = 16;
+            this.buttonAdd.Text = "+";
+            this.buttonAdd.UseVisualStyleBackColor = true;
+            this.buttonAdd.Click += new System.EventHandler(this.buttonAdd_Click);
+            // 
+            // buttonRem
+            // 
+            this.buttonRem.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonRem.Location = new System.Drawing.Point(608, 69);
+            this.buttonRem.Name = "buttonRem";
+            this.buttonRem.Size = new System.Drawing.Size(43, 38);
+            this.buttonRem.TabIndex = 17;
+            this.buttonRem.Text = "-";
+            this.buttonRem.UseVisualStyleBackColor = true;
+            this.buttonRem.Click += new System.EventHandler(this.buttonRem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(569, 508);
+            this.ClientSize = new System.Drawing.Size(663, 508);
+            this.Controls.Add(this.buttonRem);
+            this.Controls.Add(this.buttonAdd);
             this.Controls.Add(this.buttonReset);
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.buttonClose);
@@ -241,5 +267,7 @@ namespace CmdEditOccupantProfiles
         private System.Windows.Forms.Button buttonClose;
         private System.Windows.Forms.Button buttonSave;
         private System.Windows.Forms.Button buttonReset;
+        private System.Windows.Forms.Button buttonAdd;
+        private System.Windows.Forms.Button buttonRem;
     }
 }

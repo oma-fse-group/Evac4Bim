@@ -11,7 +11,13 @@ using CmdEditRoomFunction;
 using System.Windows.Forms;
 using System.Reflection;
 using Autodesk.Revit.UI.Selection;
-
+/// <summary>
+/// This class allows the user to define the function of a room 
+/// Then, it changes related properties wich depend on the room function 
+/// such as AreaPerOccupant, load factor, ... 
+/// Room functions are stored in a csv file 
+/// </summary>
+/// 
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]

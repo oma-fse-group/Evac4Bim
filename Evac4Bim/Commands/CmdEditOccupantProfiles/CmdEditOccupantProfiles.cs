@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+/// <summary>
+/// This class allows user to edit/store occupant profiles in the model with a UI
+/// </summary>
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]
@@ -21,34 +23,37 @@ namespace Evac4Bim
             var doc = uidoc.Document;
             Element projInfo = doc.ProjectInformation as Element;
 
-            var tx = new Transaction(doc);
-            tx.Start("Export IFC");
+
 
             // Querry occupant profiles 
             // Check if parameter exists ( != null )
-         
-            int j = 5;
-            string name = "occupantProfile";
+
+            // Template 
+            // {name=Fruin2;speed=;speedProfile=Normal(0.6,1.8,1.2,0.2); diameter=45.58;isMobilityImpaired=False}{name=default;speed=1.19;speedProfile=Constant; diameter=45.58;isMobilityImpaired=False} ...
+            string paramName = "OccupantProfilesList";
             List<OccupantProfile> profilesList = new List<OccupantProfile>();
-            for (int i=1; i<=j;i++)
+            Parameter param = projInfo.LookupParameter(paramName);
+            if (param.AsString() != null && param.AsString() != "")
             {
-                string paramName = name + i.ToString();
-                Parameter param = projInfo.LookupParameter(paramName);
-                string occProfileStr = "";
-                if (param.AsString() != null && param.AsString() !="")
+                string[] profilesListString = param.AsString().Split('}');
+                foreach (string s in profilesListString)
                 {
-                    occProfileStr = param.AsString();
-                }
-                else
-                {
+                    if ( s!= null && s!= "")
+                    {
+                        string temp = s.Replace("{", string.Empty);
+                        //TaskDialog.Show("Debug", temp);
+                        profilesList.Add(new OccupantProfile(temp));
+                    }
 
                 }
-                profilesList.Add(new OccupantProfile(occProfileStr, paramName));
-
+                
+            }
+            else
+            {
+                
             }
 
-            
-            
+           
 
             // Initiate figure and get return object 
             Form1 f = new Form1(profilesList);
@@ -59,20 +64,29 @@ namespace Evac4Bim
 
             List<OccupantProfile> updatedprofilesList = f.profilesList;
 
+             
+
+            var tx = new Transaction(doc);
+            tx.Start("Export IFC");
+
             // parse the updated profile list
             OccupantProfile.parseOccupantProfileList(updatedprofilesList);
             // Write ino Revit model 
 
-            
 
 
+            string completeSequence = "";
             foreach (OccupantProfile p in updatedprofilesList)
             {
+
+
+                completeSequence += "{" + p.sequence + "}";
                 
-                    projInfo.LookupParameter(p.profileId).Set(p.sequence);
                 
                 
             }
+
+            projInfo.LookupParameter(paramName).Set(completeSequence);
 
             tx.Commit();
 
@@ -97,7 +111,7 @@ namespace Evac4Bim
         public string sequence { get; set; }
 
 
-        public  OccupantProfile(string occProfileStr, string pID)
+        public  OccupantProfile(string occProfileStr)
         {
             // Ensure there is no space or exra commas ! name=default;speed=1.19;speedProfile=Constant;diameter=45.58;isMobilityImpaired=False
             if (occProfileStr != "")
@@ -113,6 +127,7 @@ namespace Evac4Bim
                 string subsDiameter = substr[3];
                 string subsIsMobilityImpaired = substr[4];
 
+
                 //clean
                 
                 this.name = subsName.Substring(subsName.IndexOf('=') + 1);
@@ -120,14 +135,16 @@ namespace Evac4Bim
                 this.speedProfile = subsSpeedProfile.Substring(subsSpeedProfile.IndexOf('=') + 1);
                 this.diameter = subsDiameter.Substring(subsDiameter.IndexOf('=') + 1);
                 this.isMobilityImpaired = subsIsMobilityImpaired.Substring(subsIsMobilityImpaired.IndexOf('=') + 1);
+                this.profileId = this.name;
 
-                //TaskDialog.Show("Debug", this.name + " " + this.speed + " " + this.speedProfile + " " + this.diameter + " " + this.isMobilityImpaired);
+              //  TaskDialog.Show("Debug", this.name + " " + this.speed + " " + this.speedProfile + " " + this.diameter + " " + this.isMobilityImpaired);
             }
             else
             {
                 this.sequence = "void";
+                this.profileId = "Empty profile";
             }
-            this.profileId = pID;
+            
 
 
 

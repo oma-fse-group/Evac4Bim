@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 /// This class imports simulation results and stores in project parameters previously defined 
 /// First, Pathfinder result json file is de-serialized in the class Pathfinder.PathfinderResultDeserializer
 /// Then results are stored in class EvacSimModel.EvacSimModel which is the standard interface for storing simulation data
+/// In case of multiple run simulation, the multiple files are retrieved and parsed => one instance of EvacSimModel is created per file then consolidated into a single instance by EvacSimModel.MergeMultipleRuns
+/// In case of multiple run simulation, the multiple files are retrieved and parsed => one instance of EvacSimModel is created per file then consolidated into a single instance by EvacSimModel.MergeMultipleRuns
 /// </summary>
 namespace Evac4Bim
 {
