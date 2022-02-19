@@ -10,10 +10,16 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using CmdMakePaths;
-
+/// <summary>
+/// Limitations : Vertical travel not handled - Occupants are assumed to be safe as soon as they reach the emergency staircase (true is stair is protected by fire door + pressurization)
+/// CmdMakePaths : this class enables the generation of travel paths 
+/// It queries the list of rooms and storeys and calls for the helper method generateTravelPaths
+/// CmdSelectPreferredExit : This class allows user to assign an exit (isDischargeExit) to different rooms
+/// </summary>
 namespace Evac4Bim
 {
     [TransactionAttribute(TransactionMode.Manual)]
+    
     public class CmdMakePaths: IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -77,6 +83,11 @@ namespace Evac4Bim
 
 
         /// <summary>
+        /// This function generates the travel path from a list of rooms to corresponding - pre assigned exits 
+        /// First, return the room geometry as polygon 
+        /// Gather vertices composing that polygon 
+        /// Find the furthest vertex from the assigned exit 
+        /// Trace a path of travel from the vertex to the exit 
         /// Limitation : there must be a floor plan view ! 
         /// Limitation : preferredExit name must include the id of element separated by _ 
         /// </summary>

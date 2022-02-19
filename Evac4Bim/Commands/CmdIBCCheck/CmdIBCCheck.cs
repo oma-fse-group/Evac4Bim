@@ -603,7 +603,7 @@ namespace Evac4Bim
         /// <summary>
         /// For multi-storey stairs ==> unpin stairs in the UI ! 
         /// Assumption : stair serves one floor only - multistoreystair is made up multiple single storey stairs
-        /// Discharge level is ginored
+        /// Discharge level is ignored
         /// </summary>
         /// <param name="stairs"></param>
         /// <param name="storeys"></param>

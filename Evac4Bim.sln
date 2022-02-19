@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdGenerateInputFile", "Eva
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdMakePaths", "Evac4Bim\Commands\CmdMakePaths\CmdMakePaths.csproj", "{3BC19489-DB6E-48A6-9D55-8CF878F30840}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdLaunchResults", "Evac4Bim\Commands\CmdLaunchResults\CmdLaunchResults.csproj", "{7D54AF44-B145-419F-8B4A-1C2129F35BEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{3BC19489-DB6E-48A6-9D55-8CF878F30840}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BC19489-DB6E-48A6-9D55-8CF878F30840}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BC19489-DB6E-48A6-9D55-8CF878F30840}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D54AF44-B145-419F-8B4A-1C2129F35BEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D54AF44-B145-419F-8B4A-1C2129F35BEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D54AF44-B145-419F-8B4A-1C2129F35BEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D54AF44-B145-419F-8B4A-1C2129F35BEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

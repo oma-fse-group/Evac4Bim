@@ -38,14 +38,7 @@ namespace Evac4Bim
             // Create ribbon panel
             RibbonPanel panel4 = application.CreateRibbonPanel("Evac4Bim", "IBC Check");
 
-            // Add a command to the ribbon 
-            path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdEditOccupantProfiles.dll";
-            PushButtonData CmdEditOccupantProfilesButton = new PushButtonData("CmdEditOccupantProfiles", "Edit Occupant\nProfiles", path2, "Evac4Bim.CmdEditOccupantProfiles");
-            // Create img icon 
-            Uri CmdEditOccupantProfilesPushButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdEditOccupantProfiles.png");
-            BitmapImage CmdEditOccupantProfilesPushButtonImg = new BitmapImage(CmdEditOccupantProfilesPushButtonImgPath);
-            PushButton CmdEditOccupantProfilesPushButton = panel.AddItem(CmdEditOccupantProfilesButton) as PushButton;
-            CmdEditOccupantProfilesPushButton.LargeImage = CmdEditOccupantProfilesPushButtonImg;
+            
 
 
             // Add a command to the ribbon 
@@ -62,10 +55,10 @@ namespace Evac4Bim
             // create push buttons for split button drop down
             string assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdImportParameter.dll";
 
-            PushButtonData bResultsOne = new PushButtonData("ImportParameters", "Pathfinder\u2122\nResults", assembly, "Evac4Bim.ImportParameters");
+            PushButtonData bResultsOne = new PushButtonData("ImportParameters", "Import Pathfinder\u2122\nResults", assembly, "Evac4Bim.ImportParameters");
             bResultsOne.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\ImportParameters.png"));
 
-            PushButtonData bResultsTwo = new PushButtonData("ImportParametersMultipleRuns", "Pathfinder\u2122\nResults (Multi)", assembly, "Evac4Bim.ImportParametersMultipleRuns");
+            PushButtonData bResultsTwo = new PushButtonData("ImportParametersMultipleRuns", "Import Pathfinder\u2122\nResults (Multi)", assembly, "Evac4Bim.ImportParametersMultipleRuns");
             bResultsTwo.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\ImportParameters.png"));
                         
 
@@ -73,7 +66,16 @@ namespace Evac4Bim
             SplitButton splt_b = panel3.AddItem(splt) as SplitButton;
             splt_b.AddPushButton(bResultsOne);
             splt_b.AddPushButton(bResultsTwo);
-    
+
+
+            // Add a command to the ribbon 
+            assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdLaunchResults.dll";
+            PushButtonData CmdLaunchResultsButton = new PushButtonData("CmdLaunchResults", "Launch\nResutls\u2122", assembly, "Evac4Bim.CmdLaunchResults");
+            // Create img icon 
+            Uri CmdLaunchResultsButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdLaunchResults.png");
+            BitmapImage CmdLaunchResultsButtonImg = new BitmapImage(CmdLaunchResultsButtonImgPath);
+            PushButton CmdLaunchResultsPushButton = panel3.AddItem(CmdLaunchResultsButton) as PushButton;
+            CmdLaunchResultsPushButton.LargeImage = CmdLaunchResultsButtonImg;
 
 
             // Add a command to the ribbon 
@@ -93,6 +95,15 @@ namespace Evac4Bim
             BitmapImage CmdRenameItemsButtonImg = new BitmapImage(CmdRenameItemsButtonImgPath);
             PushButton CmdRenameItemsPushButton = panel2.AddItem(CmdRenameItemsButton) as PushButton;
             CmdRenameItemsPushButton.LargeImage = CmdRenameItemsButtonImg;
+
+            // Add a command to the ribbon 
+            path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdEditOccupantProfiles.dll";
+            PushButtonData CmdEditOccupantProfilesButton = new PushButtonData("CmdEditOccupantProfiles", "Edit Occupant\nProfiles", path2, "Evac4Bim.CmdEditOccupantProfiles");
+            // Create img icon 
+            Uri CmdEditOccupantProfilesPushButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdEditOccupantProfiles.png");
+            BitmapImage CmdEditOccupantProfilesPushButtonImg = new BitmapImage(CmdEditOccupantProfilesPushButtonImgPath);
+            PushButton CmdEditOccupantProfilesPushButton = panel2.AddItem(CmdEditOccupantProfilesButton) as PushButton;
+            CmdEditOccupantProfilesPushButton.LargeImage = CmdEditOccupantProfilesPushButtonImg;
 
 
             // Add a command to the Split button
