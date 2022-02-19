@@ -84,12 +84,14 @@ namespace Evac4Bim
             {
                 Parameter ifcName = s.LookupParameter("IfcName");
 
+                ifcName.Set("Stair_" + s.Id.ToString());
+                stairCounter++;
 
-                if (!ifcName.HasValue)
+               /* if (!ifcName.HasValue)
                 {
                     ifcName.Set("Stair_" + s.Id.ToString());
                     stairCounter++;
-                }
+                }*/
 
             }
 

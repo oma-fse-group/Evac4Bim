@@ -149,17 +149,32 @@ namespace Evac4Bim
              PushButton CmdEditRoomFunctionPushButton = panel4.AddItem(CmdEditRoomFunctionButton) as PushButton;
              CmdEditRoomFunctionPushButton.LargeImage = CmdEditRoomFunctionPushButtonImg;
 
-            /*
+            
              // Edit parameters 
              path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdEditParameters.dll";
              PushButtonData CmdEditParametersButton = new PushButtonData("CmdEditParameters", "Edit\nParameters", path2, "Evac4Bim.CmdEditParameters");
-             // Create img icon 
              BitmapImage CmdEditParametersPushButtonImg = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdEditParameters.png"));
              PushButton CmdEditParametersPushButton = panel4.AddItem(CmdEditParametersButton) as PushButton;
              CmdEditParametersPushButton.LargeImage = CmdEditParametersPushButtonImg;
 
 
             // Load travel distances
+            // Add a command to the ribbon 
+
+            // create push buttons for split button drop down
+            path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdMakePaths.dll";
+
+            PushButtonData bPathOne = new PushButtonData("CmdSelectPreferredExit", "Assign\nExits", path2, "Evac4Bim.CmdSelectPreferredExit");
+            bPathOne.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdSelectPreferredExit.png"));
+
+            PushButtonData bPathTwo = new PushButtonData("CmdMakePaths", "Draw Travel\npaths", path2, "Evac4Bim.CmdMakePaths");
+            bPathTwo.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdMakePaths.png"));
+
+
+            SplitButtonData spltPath = new SplitButtonData("spltPath", "Paths");
+            SplitButton spltPathB = panel4.AddItem(spltPath) as SplitButton;
+            spltPathB.AddPushButton(bPathTwo);
+            spltPathB.AddPushButton(bPathOne);
 
 
 
@@ -171,7 +186,7 @@ namespace Evac4Bim
             PushButton CmdIBCCheckPushButton = panel4.AddItem(CmdIBCCheckButton) as PushButton;
             CmdIBCCheckPushButton.LargeImage = CmdIBCCheckPushButtonImg;
 
-            */
+            
 
 
             return Result.Succeeded;

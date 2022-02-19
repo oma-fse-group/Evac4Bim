@@ -133,7 +133,8 @@ namespace Evac4Bim
 
                     double area = UnitUtils.ConvertFromInternalUnits(elem.LookupParameter("Area").AsDouble(), UnitTypeId.SquareMeters);
 
-                    double load = Math.Round(area / Double.Parse(factors[f.selectedFunctionIndex]));
+                    // round up 
+                    double load = Math.Ceiling(area / Double.Parse(factors[f.selectedFunctionIndex]));
                    
                     elem.LookupParameter("IBCMaxOccupantLoad").Set(load.ToString());
 
