@@ -12,7 +12,7 @@ namespace CmdBuildingGroup
 {
     public partial class Figure : Form
     {
-        public Figure(string[] items, int SelectedIndex, string label, string title, bool hasSpk, bool hasAlarm)
+        public Figure(string[] items, int SelectedIndex, string label, string title, bool hasSpk, bool EmergencyCommunication)
         {
             InitializeComponent();
 
@@ -23,14 +23,14 @@ namespace CmdBuildingGroup
             this.label1.Text = label;
             this.Text = title;
             this.checkBox1.Checked = hasSpk;
-            this.checkBox2.Checked = hasAlarm;
+            this.checkBox2.Checked = EmergencyCommunication;
 
 
         }
         public int selectedFunctionIndex { get; set; }
-        public bool hasSprinklers { get; set; }
+        public bool SprinklerProtection { get; set; }
 
-        public bool hasAlarm { get; set; }
+        public bool EmergencyCommunication { get; set; }
 
         private void Figure_Load(object sender, EventArgs e)
         {
@@ -40,8 +40,8 @@ namespace CmdBuildingGroup
         private void button1_Click(object sender, EventArgs e)
         {
             this.selectedFunctionIndex = this.comboBox1.SelectedIndex;
-            this.hasSprinklers = this.checkBox1.Checked;
-            this.hasAlarm = this.checkBox2.Checked;
+            this.SprinklerProtection = this.checkBox1.Checked;
+            this.EmergencyCommunication = this.checkBox2.Checked;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

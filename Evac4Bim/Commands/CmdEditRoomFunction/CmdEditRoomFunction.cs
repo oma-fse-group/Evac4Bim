@@ -14,7 +14,7 @@ using Autodesk.Revit.UI.Selection;
 /// <summary>
 /// This class allows the user to define the function of a room 
 /// Then, it changes related properties wich depend on the room function 
-/// such as AreaPerOccupant, load factor, ... 
+/// such as AreaPerOccupantSpace, load factor, ... 
 /// Room functions are stored in a csv file 
 /// </summary>
 /// 
@@ -114,20 +114,11 @@ namespace Evac4Bim
                 {
                     Element elem = doc.GetElement(id);
                   
-                    // proceed 
-                    elem.LookupParameter("OccupantLoadFactor").Set(factors[f.selectedFunctionIndex].ToString());
-                    /***
-                     * 
-                     * 
-                     * 
-                     * */
-                    elem.LookupParameter("AreaPerOccupant").Set(factors[f.selectedFunctionIndex].ToString());
-                    /*
-                     * 
-                     * 
-                     * 
-                     * */
-                    elem.LookupParameter("roomFunction").Set(items[f.selectedFunctionIndex].ToString());
+                     
+                    elem.LookupParameter("AreaPerOccupantSpace").Set(factors[f.selectedFunctionIndex].ToString());
+                    
+                    //TaskDialog.Show("Debug", items[f.selectedFunctionIndex]);
+                    elem.LookupParameter("Category").Set(items[f.selectedFunctionIndex].ToString());
 
            
 
@@ -136,7 +127,7 @@ namespace Evac4Bim
                     // round up 
                     double load = Math.Ceiling(area / Double.Parse(factors[f.selectedFunctionIndex]));
                    
-                    elem.LookupParameter("IBCMaxOccupantLoad").Set(load.ToString());
+                    elem.LookupParameter("OccupancyNumberLimit").Set(load.ToString());
 
 
                 }

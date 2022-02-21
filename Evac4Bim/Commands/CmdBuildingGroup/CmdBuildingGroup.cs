@@ -62,16 +62,17 @@ namespace Evac4Bim
             int index = 20;
             bool s = false;
             bool a = false;
-            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyGroup").AsString());
+
+            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyType").AsString());
             if (pos>-1)
             {
                 index = pos;
             }
-            if (projInfo.LookupParameter("hasAlarm").AsInteger() == 1)
+            if (projInfo.LookupParameter("EmergencyCommunication").AsInteger() == 1)
             {
                 a = true;
             }
-            if (projInfo.LookupParameter("hasSprinklers").AsInteger() == 1)
+            if (projInfo.LookupParameter("SprinklerProtection").AsInteger() == 1)
             {
                 s = true;
             }
@@ -92,12 +93,12 @@ namespace Evac4Bim
 
 
                 // Edit properties 
-                projInfo.LookupParameter("OccupancyGroup").Set(items[f.selectedFunctionIndex].ToString());
+                projInfo.LookupParameter("OccupancyType").Set(items[f.selectedFunctionIndex].ToString());
 
-                Parameter hasAlarm = projInfo.LookupParameter("hasAlarm");
-                Parameter hasSpk = projInfo.LookupParameter("hasSprinklers");
+                Parameter EmergencyCommunication = projInfo.LookupParameter("EmergencyCommunication");
+                Parameter hasSpk = projInfo.LookupParameter("SprinklerProtection");
 
-                if (f.hasSprinklers)
+                if (f.SprinklerProtection)
                 {
                     hasSpk.Set(1);
                 }
@@ -106,13 +107,13 @@ namespace Evac4Bim
                     hasSpk.Set(0);
                 }
 
-                if (f.hasAlarm)
+                if (f.EmergencyCommunication)
                 {
-                    hasAlarm.Set(1);
+                    EmergencyCommunication.Set(1);
                 }
                 else
                 {
-                    hasAlarm.Set(0);
+                    EmergencyCommunication.Set(0);
                 }
 
                 // init project parameters 
@@ -169,27 +170,27 @@ namespace Evac4Bim
         public static void setWidthPerOccupant(Element projInfo)
         {
 
-            string occupancyGroup = projInfo.LookupParameter("OccupancyGroup").AsString();
-            int hasAlarm = projInfo.LookupParameter("hasAlarm").AsInteger();
-            int hasSpk = projInfo.LookupParameter("hasSprinklers").AsInteger();
+            string OccupancyType = projInfo.LookupParameter("OccupancyType").AsString();
+            int EmergencyCommunication = projInfo.LookupParameter("EmergencyCommunication").AsInteger();
+            int hasSpk = projInfo.LookupParameter("SprinklerProtection").AsInteger();
 
-            Parameter ReqExitWidthPerOccupant = projInfo.LookupParameter("ReqExitWidthPerOccupant");
-            Parameter ReqStairWidthPerOccupant = projInfo.LookupParameter("ReqStairWidthPerOccupant");
+            Parameter EgressCapacityPerOccupant = projInfo.LookupParameter("EgressCapacityPerOccupant");
+            Parameter StairCapacityPerOccupant = projInfo.LookupParameter("StairCapacityPerOccupant");
 
             
             // required door width per occuapant 
             // 5.1 mm if no sprinkler or alarm 
             // 3.8 mm if sprinkler + alarm + building class is not H or I-2
-            if (!occupancyGroup.Contains("H") && !occupancyGroup.Contains("I2") && hasSpk ==1 && hasAlarm == 1)
+            if (!OccupancyType.Contains("H") && !OccupancyType.Contains("I2") && hasSpk ==1 && EmergencyCommunication == 1)
             {
-                ReqExitWidthPerOccupant.Set("3.8");
-                ReqStairWidthPerOccupant.Set("5.1");
+                EgressCapacityPerOccupant.Set("3.8");
+                StairCapacityPerOccupant.Set("5.1");
 
             }
             else
             {
-                ReqExitWidthPerOccupant.Set("5.1");
-                ReqStairWidthPerOccupant.Set("7.6");
+                EgressCapacityPerOccupant.Set("5.1");
+                StairCapacityPerOccupant.Set("7.6");
             }
                 
 
@@ -223,7 +224,7 @@ namespace Evac4Bim
 
             //if building has sprinklers, load 2nd column - else, load first column
             int colIdx = 1;
-            int hasSpk = projInfo.LookupParameter("hasSprinklers").AsInteger();
+            int hasSpk = projInfo.LookupParameter("SprinklerProtection").AsInteger();
             if (hasSpk == 1)
             {
                 colIdx = 2;
@@ -231,14 +232,14 @@ namespace Evac4Bim
             string[] lengths = getColumn(colIdx, csv.Skip(1));
             // retrieve building occupancy group and corresponding length
             int i = 20; // default value
-            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyGroup").AsString());
+            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyType").AsString());
             if (pos > -1)
             {
                 i = pos;
             }
 
             // set parameter 
-            projInfo.LookupParameter("1017_2_MaxExitAccessTravelDistance").Set(lengths[i].ToString());
+            projInfo.LookupParameter("EgressPathTravelDistanceLimit").Set(lengths[i].ToString());
 
             return Result.Succeeded;
         }
@@ -271,34 +272,34 @@ namespace Evac4Bim
             string[] items = getColumn(0, csv.Skip(1));
 
             //if building has sprinklers, load 2nd and 3rd columns - else, load 4th column
-            string[] col1 = getColumn(1, csv.Skip(1)); // 1006_2_1_MaxOccupantLoadPerRoom
-            string[] col2 = getColumn(2, csv.Skip(1)); // OL < 30 ==> 1006_2_1_MaxCommonEgressDistance_Min
-            string[] col3 = getColumn(3, csv.Skip(1)); // OL > 30 ==> 1006_2_1_MaxCommonEgressDistance_Max
+            string[] col1 = getColumn(1, csv.Skip(1)); // OccupancyNumberLimitSingleExitSpace
+            string[] col2 = getColumn(2, csv.Skip(1)); // OL < 30 ==> EgressPathTravelDistanceLimitLowOccupancy
+            string[] col3 = getColumn(3, csv.Skip(1)); // OL > 30 ==> EgressPathTravelDistanceLimitHighOccupancy
             string[] col4 = getColumn(4, csv.Skip(1));
 
             // retrieve building occupancy group and corresponding index
             int i = 20; // default value
-            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyGroup").AsString());
+            int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyType").AsString());
             if (pos > -1)
             {
                 i = pos;
             }
 
             // set parameters 
-            projInfo.LookupParameter("1006_2_1_MaxOccupantLoadPerRoom").Set(col1[i].ToString());
+            projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").Set(col1[i].ToString());
 
             // depending on presence of sprinkler or no 
-            int hasSpk = projInfo.LookupParameter("hasSprinklers").AsInteger();
+            int hasSpk = projInfo.LookupParameter("SprinklerProtection").AsInteger();
             if (hasSpk == 1)
             {
                 // duplicate the value
-                projInfo.LookupParameter("1006_2_1_MaxCommonEgressDistance_Min").Set(col4[i].ToString());
-                projInfo.LookupParameter("1006_2_1_MaxCommonEgressDistance_Max").Set(col4[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(col4[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(col4[i].ToString());
             }
             else
             {
-                projInfo.LookupParameter("1006_2_1_MaxCommonEgressDistance_Min").Set(col2[i].ToString());
-                projInfo.LookupParameter("1006_2_1_MaxCommonEgressDistance_Max").Set(col3[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(col2[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(col3[i].ToString());
 
             }
 

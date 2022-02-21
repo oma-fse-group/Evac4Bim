@@ -14,7 +14,7 @@ using CmdMakePaths;
 /// Limitations : Vertical travel not handled - Occupants are assumed to be safe as soon as they reach the emergency staircase (true is stair is protected by fire door + pressurization)
 /// CmdMakePaths : this class enables the generation of travel paths 
 /// It queries the list of rooms and storeys and calls for the helper method generateTravelPaths
-/// CmdSelectPreferredExit : This class allows user to assign an exit (isDischargeExit) to different rooms
+/// CmdSelectPreferredExit : This class allows user to assign an exit (DischargeExit) to different rooms
 /// </summary>
 namespace Evac4Bim
 {
@@ -89,7 +89,7 @@ namespace Evac4Bim
         /// Find the furthest vertex from the assigned exit 
         /// Trace a path of travel from the vertex to the exit 
         /// Limitation : there must be a floor plan view ! 
-        /// Limitation : preferredExit name must include the id of element separated by _ 
+        /// Limitation : AssignedExit name must include the id of element separated by _ 
         /// </summary>
         /// <param name="storeys"></param>
         public static void generateTravelPaths(List<Element> storeys, List<Element> rooms, Document doc)
@@ -115,7 +115,7 @@ namespace Evac4Bim
                     // query the prefered exit for that room
                     // find the most remote corner from the exit
                     // plot path of travel
-                    // update travelDistance
+                    // update EgressPathTravelDistance
                     foreach (Element r in roomsInStorey)
                     {
 
@@ -123,7 +123,7 @@ namespace Evac4Bim
                         List<XYZ> vertices = IBCCheckUtils.getRoomVertices(r as Room);
 
                         // get the prefered exit and its location
-                        string preferredExitName = r.LookupParameter("PreferredExit").AsString();
+                        string preferredExitName = r.LookupParameter("AssignedExit").AsString();
                         // ensure it was defined
                         if (preferredExitName!="" && preferredExitName!=null)
                         {
@@ -167,7 +167,7 @@ namespace Evac4Bim
                                     if (pth != null)
                                     {
                                         double distance = Math.Round(UnitUtils.ConvertFromInternalUnits(pth.LookupParameter("Length").AsDouble(), UnitTypeId.Millimeters), 0);
-                                        r.LookupParameter("TravelDistance").Set(distance.ToString());
+                                        r.LookupParameter("EgressPathTravelDistance").Set(distance.ToString());
                                     }
                                    
 
@@ -268,9 +268,9 @@ namespace Evac4Bim
 
             //Querry all doors in the model which are exits (can be a room exit or a discharge exit)
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            IEnumerable<Element> doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("isExitDoor").AsInteger() == 1);
+            IEnumerable<Element> doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("FireExit").AsInteger() == 1);
             //List<Element> roomExitList = doorsList.ToList();
-            List<Element> dischargeExitList = doorsList.Where(door => door.LookupParameter("isDischargeExit").AsInteger() == 1).Where(door => door.LevelId == roomLevel).ToList();
+            List<Element> dischargeExitList = doorsList.Where(door => door.LookupParameter("DischargeExit").AsInteger() == 1).Where(door => door.LevelId == roomLevel).ToList();
 
             if (dischargeExitList.Count() == 0)
             {
@@ -316,7 +316,7 @@ namespace Evac4Bim
             {
                 Element elem = doc.GetElement(id);
                 // check if a room was selected and nothing else !
-                elem.LookupParameter("PreferredExit").Set(selectedExitName);
+                elem.LookupParameter("AssignedExit").Set(selectedExitName);
 
             }
 

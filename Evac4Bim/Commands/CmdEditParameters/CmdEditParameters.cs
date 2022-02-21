@@ -99,7 +99,7 @@ namespace Evac4Bim
             }
 
 
-            List<string> roomParamList = new List<string> { "Level", "Name", "Area", "roomFunction", "isCorridor","ExcludeComponent","OccupancyGroup","OccupantLoadFactor","IBCMaxOccupantLoad", "RoomOccupantLoad", "TravelDistance","requiredEgressCapacity","AvailableEgressCapacity","RequiredNumberOfExits","AvailableNumberOfExits","hasSufficientEgressCapacity", "hasSufficientNumberOfExits", "hasBalancedEgressCapacity","isMaxOccupantLoadExceeded","isTravelDistanceExceeded","DiagonalLength","hasExitDoorsConfigured"  };
+            List<string> roomParamList = new List<string> { "Level", "Name", "Area", "Category", "isCorridor","ExcludeComponent", "AssignedExit", "OccupancyType", "AreaPerOccupantSpace", "OccupancyNumberLimit", "OccupancyNumberSpace", "EgressPathTravelDistance", "EgressCapacityRequirement","EgressCapacity","ExitCountRequirement","ExitCount","EgressCapacityAdequate", "ExitCountAdequate", "EgressCapacityBalance","OccupancyNumberExcess","EgressPathTravelDistanceExcess","DiagonalLength","EgressComponentsPlacement"  };
             ViewSchedule roomSchedule = createSchedule(doc, roomParamList, roomScheduleName, BuiltInCategory.OST_Rooms);
             // Add filters 
             ScheduleField f = FindField(roomSchedule, "isCorridor" );
@@ -113,7 +113,7 @@ namespace Evac4Bim
 
 
 
-            List<string> doorParamList = new List<string> { "Level", "IfcName", "From Room: Name", "Width", "Height", "isDischargeExit", "isExitDoor","hasMinRequiredSize" };
+            List<string> doorParamList = new List<string> { "Level", "IfcName", "From Room: Name", "Width", "Height", "DischargeExit", "FireExit","DimensionAdequate" };
             ViewSchedule doorSchedule = createSchedule(doc, doorParamList, doorScheduleName, BuiltInCategory.OST_Doors);
             // Sorting 
             ScheduleSortGroupField sf3 = new ScheduleSortGroupField(FindField(doorSchedule, "Level").FieldId, ScheduleSortOrder.Ascending);
@@ -123,14 +123,14 @@ namespace Evac4Bim
             doorSchedule.Definition.AddSortGroupField(sf4);
             doorSchedule.Definition.AddSortGroupField(sf5);
             // Add filters 
-            ScheduleField f2 = FindField(doorSchedule, "isExitDoor");
+            ScheduleField f2 = FindField(doorSchedule, "FireExit");
             ScheduleFilter filter2 = new ScheduleFilter(f2.FieldId, ScheduleFilterType.NotEqual,0);
             doorSchedule.Definition.AddFilter(filter2);
 
 
 
 
-            List<string> levelParamList = new List<string> { "Name", "isDischargeLevel", "LevelOccupantLoad", "requiredEgressCapacityLevel", "AvailableNumberOfExitsLevel", "RequiredNumberOfExitsLevel", "AvailableEgressCapacityLevel", "hasBalancedEgressCapacityLevel", "hasSufficientEgressCapacityLevel", "hasSufficientNumberOfExitsLevel", "RequiredStairCapacity", "AvailableStairCapacity", "RequiredStairCount", "AvailableStairCount", "hasSufficientStairCapacity", "hasSufficientStairCount", "hasBalancedStairCapacity", "ReqStairWidthPerOccupant" };
+            List<string> levelParamList = new List<string> { "Name", "EntranceLevel", "OccupancyNumberBuilding", "OccupancyNumberStorey", "EgressCapacityRequirementStorey", "EgressCapacityStorey", "EgressCapacityAdequateStorey", "ExitCountRequirementStorey", "ExitCountStorey",   "ExitCountAdequateStorey", "EgressCapacityBalanceStorey", "StairCapacityRequirement", "StairCapacity", "StairCountRequirement", "StairCount", "StairCapacityAdequate", "StairCountAdequate", "StairCapacityBalance", "StairCapacityPerOccupant" };
             ViewSchedule levelSchedule = createSchedule(doc, levelParamList, levelScheduleName, BuiltInCategory.OST_Levels);
             // Sorting 
             ScheduleSortGroupField sf6 = new ScheduleSortGroupField(FindField(levelSchedule, "Name").FieldId, ScheduleSortOrder.Ascending);
@@ -138,10 +138,10 @@ namespace Evac4Bim
 
 
 
-            List<string> projInfoParamList = new List<string> { "Building Name", "OccupancyGroup", "hasAlarm" , "hasSprinklers" , "ReqExitWidthPerOccupant" , "1006_2_1_MaxOccupantLoadPerRoom" , "1006_2_1_MaxCommonEgressDistance_Min","1006_2_1_MaxCommonEgressDistance_Max","1017_2_MaxExitAccessTravelDistance","ReqStairWidthPerOccupant","BuildingOccupantLoad","hasSprinklersRequiredNotProvided", "OverallRequiredStairCount", "isOverallRequiredStairCountMaintained", "OverallRequiredStairCapacity", "isOverallRequiredStairCapacityMaintained" };
+            List<string> projInfoParamList = new List<string> { "Building Name", "OccupancyType", "EmergencyCommunication" , "SprinklerProtection" , "EgressCapacityPerOccupant" , "OccupancyNumberLimitSingleExitSpace" , "EgressPathTravelDistanceLimitLowOccupancy","EgressPathTravelDistanceLimitHighOccupancy","EgressPathTravelDistanceLimit","StairCapacityPerOccupant","OccupancyNumberBuilding","SprinklerProtectionRequirement","SprinklerProtectionLacking", "StairCountRequirementOverall", "StairCountContinuity", "StairCapacityRequirementOverall", "StairCapacityContinuity" };
             ViewSchedule projInfoSchedule = createSchedule(doc, projInfoParamList, projInfoScheduleName, BuiltInCategory.INVALID);
 
-            List<string> stairParamList = new List<string> { "IfcName","isEmergencyStair", "Top Level", "Base Level", "Width","Actual Riser Height","Actual Tread Depth","hasSufficientRiserHeight","hasSufficientTreadDepth" };
+            List<string> stairParamList = new List<string> { "IfcName", "FireEgressStair", "Top Level", "Base Level", "Width","Actual Riser Height","Actual Tread Depth","RiserHeightAdequate","TreadLengthAdequate" };
             ViewSchedule stairSchedule = createSchedule(doc, stairParamList, stairScheduleName, BuiltInCategory.OST_Stairs);
 
 
