@@ -35,7 +35,9 @@ namespace Evac4Bim
             // Get the BingdingMap of current document.
             BindingMap bindingMap = doc.ParameterBindings;
 
-            
+                        
+
+             
             const string SHARED_PARAMETER_FILE_NAME = @"\shared-pramas-list.csv";
 
             // Parameter group in the Revit UI
@@ -222,10 +224,7 @@ namespace Evac4Bim
                 TaskDialog.Show("Loading parameters", msg + paramList);
             }
 
-
-
-
-
+            
             // Terminate transaction
             tx.Commit();
 

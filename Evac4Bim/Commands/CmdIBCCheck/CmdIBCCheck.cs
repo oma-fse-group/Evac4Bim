@@ -47,7 +47,7 @@ namespace Evac4Bim
             var app = commandData.Application.Application;
             this.projInfo = doc.ProjectInformation as Element;
 
- 
+
 
             // Init project parameters 
             this.EgressCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("EgressCapacityPerOccupant").AsString());
@@ -80,26 +80,28 @@ namespace Evac4Bim
 
             //Querry all doors in the model which are exits (can be a room exit or a discharge exit)
             IEnumerable<Element> doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("FireExit").AsInteger() == 1);
-             List<Element> roomExitList = doorsList.ToList();
+            List<Element> roomExitList = doorsList.ToList();
             List<Element> dischargeExitList = doorsList.Where(door => door.LookupParameter("DischargeExit").AsInteger() == 1).ToList();
 
             // List of storeys 
             List<Element> storeys = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Levels).WhereElementIsNotElementType().ToList();
 
-           
+            // BuiltInCategory.OST_TextNotes 
+
             // check if emergency stairs are included in a multistorey stair => unpin 
             List<Element> multiStoreyStairs = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_MultistoryStairs).ToList();
             // ask for user permission 
-            IBCCheckUtils.unpinStairs(multiStoreyStairs, this.doc);
+
+           IBCCheckUtils.unpinStairs(multiStoreyStairs, this.doc);
 
             // List of stairs 
             List<Element> stairs = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_Stairs).Where(stair => stair.LookupParameter("FireEgressStair").AsInteger() == 1).ToList();
 
-             
+
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
             /// 1 . Checking room egress capacity + occupant load 
-            ibcCheckRooms(rooms, roomExitList);
+           ibcCheckRooms(rooms, roomExitList);
 
             /// 2 . Check Building 
             ibcCheckBuilding();
@@ -108,11 +110,15 @@ namespace Evac4Bim
             ibcCheckStoreys(storeys, rooms, dischargeExitList);
             ibcCheckBuildingEgressCapacity(storeys, dischargeExitList);
 
-            /// 4. Check stairs 
-            ibcCheckStairSystem(stairs,storeys);
+           // /// 4. Check stairs 
+           ibcCheckStairSystem(stairs, storeys);
 
-           // Confirmation
-           TaskDialog.Show("Result", "Check is over");
+            /// 5. Add text notes to display results 
+            makeTextNotes(storeys,rooms);
+            tagDischargeDoors(storeys, doorsList.ToList());
+
+            // Confirmation
+            TaskDialog.Show("Result", "Check is over");
 
             tx.Commit();
             return Result.Succeeded;
@@ -138,7 +144,7 @@ namespace Evac4Bim
                 // C.2 Compute the required exit capacity 
                 int OccupancyNumberSpace = 0;
                 string roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsString();
-                if (roomOccupantLoadStr == "" || roomOccupantLoadStr==null)
+                if (roomOccupantLoadStr == "" || roomOccupantLoadStr == null)
                 {
                     // if it is not set, use the IBC default value 
                     OccupancyNumberSpace = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
@@ -156,7 +162,8 @@ namespace Evac4Bim
                 r.LookupParameter("EgressCapacityRequirement").Set(EgressCapacityRequirement.ToString());
 
 
-                double roomTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString());
+                double EgressPathTravelDistance = -1;
+                Double.TryParse(r.LookupParameter("EgressPathTravelDistance").AsString(), out EgressPathTravelDistance);
 
                 // C.3 Compute the requried number of exits 
                 int ExitCountRequirement = 1;
@@ -165,12 +172,12 @@ namespace Evac4Bim
                 else if (OccupancyNumberSpace > MaxOccupantLoadPerRoom_1006_2_1) { ExitCountRequirement = 2; }
                 else if (SprinklerProtection == 1)
                 {
-                    if (roomTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
+                    if (EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
                 }
                 else if (SprinklerProtection == 0)
                 {
-                    if (OccupancyNumberSpace > 30 && roomTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
-                    else if (OccupancyNumberSpace <= 30 && roomTravelDistance > EgressPathTravelDistanceLimitHighOccupancy) { ExitCountRequirement = 2; }
+                    if (OccupancyNumberSpace > 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
+                    else if (OccupancyNumberSpace <= 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitHighOccupancy) { ExitCountRequirement = 2; }
 
                 }
                 // else, it stays == 1
@@ -234,8 +241,8 @@ namespace Evac4Bim
 
                     // C.6 Store door location for later use 
                     XYZ doorLocation = null;
-                    
-                    if (d.Location == null)                   
+
+                    if (d.Location == null)
                     {
                         // can be a curtain glass 
                         // fetch origin from family instnce
@@ -293,7 +300,7 @@ namespace Evac4Bim
 
                 r.LookupParameter("EgressCapacityBalance").Set(EgressCapacityBalance);
 
-                 
+
 
 
                 // C.6 Check if distances between exits are okay (if multiple exits)
@@ -342,7 +349,7 @@ namespace Evac4Bim
                 r.LookupParameter("EgressComponentsPlacement").Set(EgressComponentsPlacement.ToString());
 
 
-                
+
                 // C.7 check if occupant load is exceeded
                 string OccupancyNumberExcess = "False";
                 int OccupancyNumberLimit = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
@@ -356,7 +363,7 @@ namespace Evac4Bim
 
                 // C.8 chck travel distance             
 
-                double EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
+                // EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
                 string EgressPathTravelDistanceExcess = "False";
                 if (EgressPathTravelDistance > EgressPathTravelDistanceLimit)
                 {
@@ -375,14 +382,14 @@ namespace Evac4Bim
             string SprinklerProtectionRequirement = "False";
 
 
-            if ( EgressPathTravelDistanceLimit == -1)
+            if (EgressPathTravelDistanceLimit == -1)
             {
                 SprinklerProtectionRequirement = "True";
-                if (SprinklerProtection == 0 )
+                if (SprinklerProtection == 0)
                 {
                     SprinklerProtectionLacking = "True";
                 }
-                
+
             }
 
             projInfo.LookupParameter("SprinklerProtectionLacking").Set(SprinklerProtectionLacking);
@@ -467,7 +474,7 @@ namespace Evac4Bim
 
                     EgressCapacityStorey += width;
 
-                   //TaskDialog.Show("Debug", "Storey : " + s.Name +" - Width : " + width.ToString());
+                    //TaskDialog.Show("Debug", "Storey : " + s.Name +" - Width : " + width.ToString());
 
                     // C.5 Check if egress capacity is well balanced 
                     widths.Add(width);
@@ -612,7 +619,7 @@ namespace Evac4Bim
                 {
                     ExitCountAdequateStorey = "False";
                 }
-                
+
                 dischargeStorey.LookupParameter("ExitCountAdequateStorey").Set(ExitCountAdequateStorey);
 
                 // C.4.3 : Check the available egress capacity for this level
@@ -679,7 +686,7 @@ namespace Evac4Bim
                 storey.LookupParameter("StairCapacityAdequate").Set("n.a");
                 storey.LookupParameter("StairCapacityBalance").Set("n.a");
 
-                
+
                 int OccupancyNumberStorey = Int32.Parse(storey.LookupParameter("OccupancyNumberStorey").AsString());
 
                 if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey > 0)
@@ -733,18 +740,18 @@ namespace Evac4Bim
             /// 1. Loop stairs 
             foreach (Stairs s in stairs)
             {
-                               
+
                 StairsType s_FI = doc.GetElement(s.GetTypeId()) as StairsType;
 
                 /// 1.1 Get stair width 
-                double s_width =  Math.Round(UnitUtils.ConvertFromInternalUnits(s_FI.MinRunWidth, UnitTypeId.Millimeters), 1); // mm
-                // specify width in parameters 
-                //s.LookupParameter("Width").Set(100);
+                double s_width = Math.Round(UnitUtils.ConvertFromInternalUnits(s_FI.MinRunWidth, UnitTypeId.Millimeters), 1); // mm
+                                                                                                                              // specify width in parameters 
+                                                                                                                              //s.LookupParameter("Width").Set(100);
 
-               // TaskDialog.Show("Debug", s_width.ToString());
-               /// 1.2 get stair construction 
-               double s_riserHeight = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualRiserHeight, UnitTypeId.Millimeters), 1); 
-               double s_treadDepth = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualTreadDepth, UnitTypeId.Millimeters), 1);
+                // TaskDialog.Show("Debug", s_width.ToString());
+                /// 1.2 get stair construction 
+                double s_riserHeight = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualRiserHeight, UnitTypeId.Millimeters), 1);
+                double s_treadDepth = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualTreadDepth, UnitTypeId.Millimeters), 1);
                 //TaskDialog.Show("Debug", s_riserHeight.ToString() + " * " + s_treadDepth.ToString());
 
                 /// 1.3 check against requirements 
@@ -757,7 +764,7 @@ namespace Evac4Bim
                 {
                     s.LookupParameter("RiserHeightAdequate").Set("False");
                 }
-                if (MIN_TREAD_DEPTH <= s_treadDepth )
+                if (MIN_TREAD_DEPTH <= s_treadDepth)
                 {
                     s.LookupParameter("TreadLengthAdequate").Set("True");
                 }
@@ -779,11 +786,11 @@ namespace Evac4Bim
                     }
 
                 }
-                
-                     
+
+
                 // 1.4.1 For each serviced storey => append StairCount and StairCapacity
                 // skip DISCHARGE LEVEL
-                if (l.LookupParameter("EntranceLevel").AsInteger()!=1)
+                if (l.LookupParameter("EntranceLevel").AsInteger() != 1)
                 {
 
                     int StairCount = 0;
@@ -793,9 +800,9 @@ namespace Evac4Bim
 
                     double StairCapacity = 0;
                     double.TryParse(l.LookupParameter("StairCapacity").AsString(), out StairCapacity);
-                    StairCapacity+=s_width;
+                    StairCapacity += s_width;
                     l.LookupParameter("StairCapacity").Set(StairCapacity.ToString());
-                    
+
                     /// 2.3 Check StairCapacity is well balanced 
                     // ie No serving stair should have a width less than 50% of the required capacity
                     double StairCapacityRequirement = 0;
@@ -805,7 +812,7 @@ namespace Evac4Bim
                     if (reducedStairCapacity < 0.5 * StairCapacityRequirement)
                     {
                         StairCapacityBalance = "False";
-                        
+
                     }
                     l.LookupParameter("StairCapacityBalance").Set(StairCapacityBalance);
 
@@ -824,7 +831,7 @@ namespace Evac4Bim
             {
                 int OccupancyNumberStorey = Int32.Parse(storey.LookupParameter("OccupancyNumberStorey").AsString());
 
-                if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey>0)
+                if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey > 0)
                 {
 
                     /// 2.2 Compare with StairCount and StairCapacity => StairCountAdequate and StairCapacityAdequate
@@ -835,8 +842,8 @@ namespace Evac4Bim
                     double StairCapacityRequirement = 0;
                     double.TryParse(storey.LookupParameter("StairCapacityRequirement").AsString(), out StairCapacityRequirement);
 
-                    int StairCount =0;
-                    int.TryParse(storey.LookupParameter("StairCount").AsString(),out StairCount);
+                    int StairCount = 0;
+                    int.TryParse(storey.LookupParameter("StairCount").AsString(), out StairCount);
 
                     double StairCapacity = 0;
                     double.TryParse(storey.LookupParameter("StairCapacity").AsString(), out StairCapacity);
@@ -901,7 +908,7 @@ namespace Evac4Bim
                         StairCountContinuity = "False";
                     }
 
-                    
+
 
                 }
 
@@ -914,16 +921,267 @@ namespace Evac4Bim
             doc.ProjectInformation.LookupParameter("StairCountRequirementOverall").Set(StairCountRequirementOverall.ToString());
             doc.ProjectInformation.LookupParameter("StairCapacityRequirementOverall").Set(StairCapacityRequirementOverall.ToString());
 
- 
+
         }
 
+        public void makeTextNotes(List<Element> storeys , List<Element>rooms)
+        {
+             foreach (Element s in storeys)
+            {
+                // get storey 
+                Level l = s as Level;
+
+                // make text 
+                string msg = "";
+                string temp = "n.a";
+                if (1 == 1)
+                {
+                    msg += "< Summary of Prescriptions Check For Storey \""+ l.Name + "\" >";
+                    msg += "\n\n\n";                    
+                    ///
+                    msg += "Occupants Served : ";
+                    msg += l.LookupParameter("OccupancyNumberStorey").AsString();
+                    msg += "\n\n";
+                    ///
+                    msg += "Discharge Level : ";
+                    if (l.LookupParameter("EntranceLevel").AsInteger() == 1)
+                    {
+                        msg += "Yes";
+                    }
+                    else
+                    {
+                        msg += "No";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Egress Capacity : ";
+                    temp = l.LookupParameter("EgressCapacityAdequateStorey").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Exit Count : ";
+                    temp = l.LookupParameter("ExitCountAdequateStorey").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Egress Capacity Balance : ";
+                    temp = l.LookupParameter("EgressCapacityBalanceStorey").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Stair Capacity : ";
+                    temp = l.LookupParameter("StairCapacityAdequate").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Stair Count : ";
+                    temp = l.LookupParameter("StairCountAdequate").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    msg += "Stair Capacity Balance : ";
+                    temp = l.LookupParameter("StairCapacityBalance").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Pass";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "Fail";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                }
+
+
+                // check if a text note was not defined previously 
+                string textNoteId = l.LookupParameter("TextNoteStoreyID").AsString();
+                TextNote note = null;
+                int makeNew = 1; // by defautlt - make a new note
+
+
+                if (textNoteId != "" && textNoteId != null)
+                {
+                    //a note was previously defined
+                    // try to retrieve it 
+                    note = doc.GetElement(new ElementId(int.Parse(textNoteId))) as TextNote;
+                    // check if element exists 
+                    if (note != null)
+                    {
+                        // update its text 
+                        note.Text = msg;
+                        makeNew = 0; // no need for a new one
+                    }
+                    else
+                    {
+                        // it must have been removed from UI 
+                        makeNew = 1;
+
+                    }                    
+                }
+                // else create a new one
+                if (makeNew == 1)
+                {
+                   
+                    // get the view associated with the floor s an id
+                    ElementId viewId = l.FindAssociatedPlanViewId();
+                    if (viewId == ElementId.InvalidElementId)
+                    {
+                        // do something
+                        // skip
+                        continue;
+                    }
+                    View v = doc.GetElement(viewId) as View;
+
+                    // define origin 
+                    XYZ origin = null;
+
+                    // cannot access location/coordinates of floor or floor planes or view so,
+                    // find a random room and place the note box on it - hoping the user will notice it :) 
+                    Element r = rooms.Where(room => room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsElementId() == l.Id).ToList().First();
+                    if (r != null)
+                    {
+                        origin = (r.Location as LocationPoint).Point;
+                    }
+                    else
+                    {
+                        origin = new XYZ(167, 76, l.Elevation); // throw a random location
+                    }
+
+
+                    // Edit options 
+                    TextNoteOptions options = new TextNoteOptions();
+                    options.HorizontalAlignment = HorizontalTextAlignment.Left;
+                    options.TypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
+                   
+                    // Create the note 
+                    note = TextNote.Create(doc, viewId, origin, msg, options);
+
+                    // store element id for later processing 
+                    l.LookupParameter("TextNoteStoreyID").Set(note.Id.IntegerValue.ToString());
+
+                }
+
+
+
+            }
 
 
 
 
+        }
+    
+        public void tagDischargeDoors (List<Element> storeys,List<Element> doorsList)
+        {
+            Color color = new Color((byte)0, (byte)255, (byte)0);
+            OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+            ogs.SetProjectionLineColor(color);
+            ogs.SetProjectionLineWeight(7);
+
+            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
+
+            foreach (Element s in storeys)
+            {
+                Level l = s as Level;
+                ElementId levelID = s.Id;
+ 
+                 
+                // Querry doors from that level
+                List<Element> doorsInStorey = doorsList.Where(door => door.LevelId == levelID).ToList();
+
+
+                foreach (Element d in doorsInStorey)
+                {
+                    // get view 
+                    // get the view associated with the floor s an id
+                    ElementId viewId = l.FindAssociatedPlanViewId();
+                    if (viewId == ElementId.InvalidElementId)
+                    {
+                        // do something
+                        // skip
+                        continue;
+                    }
+                    View v = doc.GetElement(viewId) as View;
+                    if (d.LookupParameter("DischargeExit").AsInteger() == 1)
+                    {
+                        v.SetElementOverrides(d.Id, ogs);
+                    }
+                    else
+                    {
+                        v.SetElementOverrides(d.Id, default_ogs);
+                    }
+
+
+                }
+            }
+        }
+    
     }
 
-    public class IBCCheckUtils
+        public class IBCCheckUtils
     {
         /// <summary>
         /// Return the diagonal of a room = furthest distance between two rooms [millimeters]
