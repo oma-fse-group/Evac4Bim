@@ -95,8 +95,11 @@ namespace Evac4Bim
            IBCCheckUtils.unpinStairs(multiStoreyStairs, this.doc);
 
             // List of stairs 
+            List<Element> allStairs = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_Stairs).ToList();
+
             List<Element> stairs = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_Stairs).Where(stair => stair.LookupParameter("FireEgressStair").AsInteger() == 1).ToList();
 
+            List<Element> travelPaths = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_PathOfTravelLines).ToList();
 
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
@@ -113,9 +116,12 @@ namespace Evac4Bim
            // /// 4. Check stairs 
            ibcCheckStairSystem(stairs, storeys);
 
-            /// 5. Add text notes to display results 
+            /// 5. Display/Highlight results 
             makeTextNotes(storeys,rooms);
-            tagDischargeDoors(storeys, doorsList.ToList());
+            makeTextNotesBuildingSummary(storeys, rooms);
+            highlightDoors(storeys, doorsList.ToList());
+            highlightTravelPaths(travelPaths);
+            highlightStairs(allStairs);
 
             // Confirmation
             TaskDialog.Show("Result", "Check is over");
@@ -930,7 +936,7 @@ namespace Evac4Bim
             {
                 // get storey 
                 Level l = s as Level;
-
+                
                 // make text 
                 string msg = "";
                 string temp = "n.a";
@@ -959,11 +965,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("EgressCapacityAdequateStorey").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -976,11 +982,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("ExitCountAdequateStorey").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -993,11 +999,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("EgressCapacityBalanceStorey").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -1010,11 +1016,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("StairCapacityAdequate").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -1027,11 +1033,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("StairCountAdequate").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -1043,11 +1049,11 @@ namespace Evac4Bim
                     temp = l.LookupParameter("StairCapacityBalance").AsString();
                     if (temp == "True")
                     {
-                        msg += "Pass";
+                        msg += "Pass \u2714";
                     }
                     else if (temp == "False")
                     {
-                        msg += "Fail";
+                        msg += "Fail \u274C";
                     }
                     else
                     {
@@ -1133,15 +1139,182 @@ namespace Evac4Bim
 
 
         }
-    
-        public void tagDischargeDoors (List<Element> storeys,List<Element> doorsList)
+
+        public void makeTextNotesBuildingSummary(List<Element> storeys, List<Element> rooms)
         {
-            Color color = new Color((byte)0, (byte)255, (byte)0);
+            // Querry the discharge level 
+            List<Element> dischargeStoreys = storeys.Where(s => s.LookupParameter("EntranceLevel").AsInteger() == 1).ToList();
+
+            if (dischargeStoreys.Count > 0)
+            {
+
+                Element dischargeStorey = dischargeStoreys.First();
+
+                // get storey 
+                Level l = dischargeStorey as Level;
+
+                // make text 
+                string msg = "";
+                string temp = "n.a";
+                if (1 == 1)
+                {
+                    msg += "< Summary of Prescriptions Check For the Building >";
+                    msg += "\n\n\n";
+                    ///
+                    msg += "Name : ";
+                    msg += projInfo.get_Parameter(BuiltInParameter.PROJECT_BUILDING_NAME).AsString();
+                    msg += "\n\n";
+                    ///
+                    msg += "Occupancy Type : ";
+                    msg += projInfo.LookupParameter("OccupancyType").AsString();
+                    msg += "\n\n";
+                    ///
+                    msg += "Total Occupants : ";
+                    msg += projInfo.LookupParameter("OccupancyNumberBuilding").AsString();
+                    msg += "\n\n";
+                    ///
+                    msg += "Sprinkler System : ";
+                    if (projInfo.LookupParameter("SprinklerProtection").AsInteger() == 1)
+                    {
+                        msg += "Yes";
+                    }
+                    else if (projInfo.LookupParameter("SprinklerProtection").AsInteger() == 0)
+                    {
+                        msg += "No";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Alarm System : ";
+                    if (projInfo.LookupParameter("EmergencyCommunication").AsInteger() == 1)
+                    {
+                        msg += "Yes";
+                    }
+                    else if (projInfo.LookupParameter("EmergencyCommunication").AsInteger() == 0)
+                    {
+                        msg += "No";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                    ///
+                    msg += "Sprinklers Required : ";
+                    temp = projInfo.LookupParameter("SprinklerProtectionRequirement").AsString();
+                    if (temp == "True")
+                    {
+                        msg += "Yes";
+                    }
+                    else if (temp == "False")
+                    {
+                        msg += "No";
+                    }
+                    else
+                    {
+                        msg += "n.a";
+                    }
+                    temp = "n.a";
+                    msg += "\n\n";
+                }
+
+
+                // check if a text note was not defined previously 
+                string textNoteId = projInfo.LookupParameter("TextNoteBuildingID").AsString();
+                TextNote note = null;
+                int makeNew = 1; // by defautlt - make a new note
+
+
+                if (textNoteId != "" && textNoteId != null)
+                {
+                    //a note was previously defined
+                    // try to retrieve it 
+                    note = doc.GetElement(new ElementId(int.Parse(textNoteId))) as TextNote;
+                    // check if element exists 
+                    if (note != null)
+                    {
+                        // update its text 
+                        note.Text = msg;
+                        makeNew = 0; // no need for a new one
+                    }
+                    else
+                    {
+                        // it must have been removed from UI 
+                        makeNew = 1;
+
+                    }
+                }
+                // else create a new one
+                if (makeNew == 1)
+                {
+
+                    // get the view associated with the floor s an id
+                    ElementId viewId = l.FindAssociatedPlanViewId();
+                    if (viewId != ElementId.InvalidElementId)
+                    {
+                        
+                        View v = doc.GetElement(viewId) as View;
+
+                        // define origin 
+                        XYZ origin = null;
+
+                        // cannot access location/coordinates of floor or floor planes or view so,
+                        // find a random room and place the note box on it - hoping the user will notice it :) 
+                        Element r = rooms.Where(room => room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsElementId() == l.Id).ToList().First();
+                        if (r != null)
+                        {
+                            origin = (r.Location as LocationPoint).Point;
+                        }
+                        else
+                        {
+                            origin = new XYZ(167, 76, l.Elevation); // throw a random location
+                        }
+
+
+                        // Edit options 
+                        TextNoteOptions options = new TextNoteOptions();
+                        options.HorizontalAlignment = HorizontalTextAlignment.Left;
+                        options.TypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
+
+                        // Create the note 
+                        note = TextNote.Create(doc, viewId, origin, msg, options);
+
+                        // store element id for later processing 
+                        projInfo.LookupParameter("TextNoteBuildingID").Set(note.Id.IntegerValue.ToString());
+                    }
+                    else
+                    {
+                        // do something
+                        // skip
+                    }
+
+                }
+
+
+
+            }
+
+
+        }
+        public void highlightDoors (List<Element> storeys,List<Element> doorsList)
+        {
+            Color green = new Color((byte)0, (byte)255, (byte)0);
+            Color red = new Color((byte)255, (byte)0, (byte)0);
+
             OverrideGraphicSettings ogs = new OverrideGraphicSettings();
-            ogs.SetProjectionLineColor(color);
+            ogs.SetProjectionLineColor(green);
             ogs.SetProjectionLineWeight(7);
 
             OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
+
+            OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
+            ogs_error.SetProjectionLineColor(red);
+            ogs_error.SetProjectionLineWeight(7);
 
             foreach (Element s in storeys)
             {
@@ -1165,10 +1338,17 @@ namespace Evac4Bim
                         continue;
                     }
                     View v = doc.GetElement(viewId) as View;
-                    if (d.LookupParameter("DischargeExit").AsInteger() == 1)
+                    // check if something is wrong with that door ! 
+                    if (d.LookupParameter("DimensionAdequate").AsString() == "False")
+                    {
+                        v.SetElementOverrides(d.Id, ogs_error);
+                    }
+                    // if its fine AND it is a dischargeExit => highlight it
+                    else if (d.LookupParameter("DischargeExit").AsInteger() == 1)
                     {
                         v.SetElementOverrides(d.Id, ogs);
                     }
+                    // if its fine and NOT discharge exit => apply default style
                     else
                     {
                         v.SetElementOverrides(d.Id, default_ogs);
@@ -1179,6 +1359,112 @@ namespace Evac4Bim
             }
         }
     
+        public void highlightTravelPaths (List<Element> travelPaths)
+        {
+            Color green = new Color((byte)0, (byte)200, (byte)0);
+            Color red = new Color((byte)200, (byte)0, (byte)0);
+
+            OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+            ogs.SetProjectionLineColor(green);
+            ogs.SetProjectionLineWeight(10);
+
+            OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
+            ogs_error.SetProjectionLineColor(red);
+            ogs_error.SetProjectionLineWeight(10);
+
+            foreach (Element t in travelPaths)
+            {
+                PathOfTravel p = t as PathOfTravel;
+                
+                double length = UnitUtils.ConvertFromInternalUnits(p.LookupParameter("Length").AsDouble(), UnitTypeId.Millimeters);
+
+                 
+
+                ElementId viewId = p.OwnerViewId;
+                View v = doc.GetElement(viewId) as View;
+
+                if (length <= this.EgressPathTravelDistanceLimit)
+                {
+                    v.SetElementOverrides(p.Id, ogs);
+                }
+                else
+                {
+                    v.SetElementOverrides(p.Id, ogs_error);
+                }
+
+                
+
+
+            }
+        }
+
+        public void highlightStairs(List<Element> stairs)
+        {
+            Color green = new Color((byte)0, (byte)200, (byte)0);
+            Color red = new Color((byte)200, (byte)0, (byte)0);
+
+            OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+            ogs.SetProjectionLineColor(green);
+            ogs.SetProjectionLineWeight(7);
+
+            OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
+            ogs_error.SetProjectionLineColor(red);
+            ogs_error.SetProjectionLineWeight(7);
+
+            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
+
+
+            foreach (Element stair in stairs)
+            {
+
+                // find storey (top and base level ! )
+                ElementId s_toplevel = stair.LookupParameter("Top Level").AsElementId();
+                ElementId s_baselevel = stair.LookupParameter("Base Level").AsElementId();
+
+                Level lTop = doc.GetElement(s_toplevel) as Level;
+                Level lBase = doc.GetElement(s_baselevel) as Level;
+
+                ElementId viewIdTop = lTop.FindAssociatedPlanViewId();
+                ElementId viewIdBase = lBase.FindAssociatedPlanViewId();
+
+
+                if (viewIdTop != ElementId.InvalidElementId && viewIdBase != ElementId.InvalidElementId)
+                {
+                    if (stair.LookupParameter("FireEgressStair").AsInteger() != 1)
+                    {
+                        View v1 = doc.GetElement(viewIdTop) as View;
+                        v1.SetElementOverrides(stair.Id, default_ogs);
+
+                        View v2 = doc.GetElement(viewIdBase) as View;
+                        v2.SetElementOverrides(stair.Id, default_ogs);
+                    }
+
+                    else if (stair.LookupParameter("RiserHeightAdequate").AsString() == "True" && stair.LookupParameter("TreadLengthAdequate").AsString() == "True")
+                    {
+                        View v1 = doc.GetElement(viewIdTop) as View;
+                        v1.SetElementOverrides(stair.Id, ogs);
+
+                        View v2 = doc.GetElement(viewIdBase) as View;
+                        v2.SetElementOverrides(stair.Id, ogs);
+                    }
+                    else
+                    {
+                        View v1 = doc.GetElement(viewIdTop) as View;
+                        v1.SetElementOverrides(stair.Id, ogs_error);
+
+                        View v2 = doc.GetElement(viewIdBase) as View;
+                        v2.SetElementOverrides(stair.Id, ogs_error);
+                    }
+                    
+
+
+                }
+
+            }
+
+
+        }
+
     }
 
         public class IBCCheckUtils
