@@ -80,7 +80,7 @@ namespace Evac4Bim
 
             // Add a command to the ribbon 
             path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdLoadParameters.dll";
-            PushButtonData CmdLoadParametersButton = new PushButtonData("CmdLoadParametersButton", "Generate\nParameters", path2, "Evac4Bim.CmdLoadParameters");
+            PushButtonData CmdLoadParametersButton = new PushButtonData("CmdLoadParametersButton", "Initialize\nProject", path2, "Evac4Bim.CmdLoadParameters");
             // Create img icon 
             Uri CmdLoadParametersButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdLoadParameters.png");
             BitmapImage CmdLoadParametersButtonImg = new BitmapImage(CmdLoadParametersButtonImgPath);
@@ -89,7 +89,7 @@ namespace Evac4Bim
 
             // Add a command to the ribbon 
             path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdRenameItems.dll";
-            PushButtonData CmdRenameItemsButton = new PushButtonData("CmdRenameItemsButton", "Rename\nElements", path2, "Evac4Bim.CmdRenameItems");
+            PushButtonData CmdRenameItemsButton = new PushButtonData("CmdRenameItemsButton", "Initialize\nElements", path2, "Evac4Bim.CmdRenameItems");
             // Create img icon 
             Uri CmdRenameItemsButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdRenameItems.png");
             BitmapImage CmdRenameItemsButtonImg = new BitmapImage(CmdRenameItemsButtonImgPath);
@@ -134,7 +134,7 @@ namespace Evac4Bim
 
             // Add a command to the ribbon 
             path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdCreateSchedules.dll";
-            PushButtonData CmdCreateSchedulesButton = new PushButtonData("CmdCreateSchedules", "Create\nSchedules", path2, "Evac4Bim.CmdCreateSchedules");
+            PushButtonData CmdCreateSchedulesButton = new PushButtonData("CmdCreateSchedules", "Schedule\nResult", path2, "Evac4Bim.CmdCreateSchedules");
             // Create img icon 
            
             Uri CmdCreateSchedulesButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+ @"\icons\CmdCreateSchedules.png");

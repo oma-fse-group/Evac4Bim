@@ -63,6 +63,15 @@ namespace Evac4Bim
             bool s = false;
             bool a = false;
 
+            if(projInfo.LookupParameter("OccupancyType") == null)
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+
+                return Result.Failed;
+
+            }
+
+
             int pos = Array.IndexOf(items, projInfo.LookupParameter("OccupancyType").AsString());
             if (pos>-1)
             {

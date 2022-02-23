@@ -50,7 +50,18 @@ namespace Evac4Bim
             int doorCounter = 0;
             foreach (Element d in doors)
             {
-                Parameter ifcName = d.LookupParameter("IfcName");
+                Parameter ifcName = null;
+                try
+                {
+                    ifcName = d.LookupParameter("IfcName");
+                }
+                catch
+                {
+                    TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+                    tx.RollBack();
+                    return Result.Failed;
+                }
+                
                 
 
                 if (!ifcName.HasValue)

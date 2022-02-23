@@ -65,6 +65,7 @@ namespace Evac4Bim
             
 
             string paramList = "";
+            int paramCount = 0;
             string msg = "The following parameters were loaded and configured succesfuly :";
 
             // First check if a shared param txt file is already defined in Revit => overwrite it
@@ -213,6 +214,7 @@ namespace Evac4Bim
                 }
 
                 paramList += "\n" + name;
+                paramCount++;
             }
 
             if (paramList == "")
@@ -221,7 +223,8 @@ namespace Evac4Bim
             }
             else
             {
-                TaskDialog.Show("Loading parameters", msg + paramList);
+                // TaskDialog.Show("Loading parameters", msg + paramList);
+                TaskDialog.Show("Evac4Bim", "Project initialized. "+ paramCount.ToString() +" parameters were loaded");
             }
 
             

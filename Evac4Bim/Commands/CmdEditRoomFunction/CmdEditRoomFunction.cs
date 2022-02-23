@@ -114,7 +114,14 @@ namespace Evac4Bim
                 {
                     Element elem = doc.GetElement(id);
                   
-                     
+                    if (elem.LookupParameter("AreaPerOccupantSpace")== null || elem.LookupParameter("AreaPerOccupantSpace") == null || elem.LookupParameter("Category") == null )
+                    {
+                        TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+
+                        tx.RollBack();
+                        return Result.Failed;
+                    }
+                    
                     elem.LookupParameter("AreaPerOccupantSpace").Set(factors[f.selectedFunctionIndex].ToString());
                     
                     //TaskDialog.Show("Debug", items[f.selectedFunctionIndex]);

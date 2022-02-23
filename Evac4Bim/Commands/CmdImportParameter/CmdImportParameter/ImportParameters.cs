@@ -29,6 +29,14 @@ namespace Evac4Bim
             var uiapp = commandData.Application;
             var doc = uidoc.Document;
             var app = commandData.Application.Application;
+            
+            // Check if the project was initialized 
+            if (doc.ProjectInformation.LookupParameter("EvacuationModelName") == null)
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+                return Result.Failed;
+            }
+
 
             // Import JSON file 
             string localPath = "";
@@ -59,6 +67,7 @@ namespace Evac4Bim
             string doorCsvPath = ImportUtils.returnCsvFileName(localPath, "_doors.csv");
 
              
+            
 
             // start transaction 
             var tx = new Transaction(doc);
@@ -99,6 +108,13 @@ namespace Evac4Bim
             var uiapp = commandData.Application;
             var doc = uidoc.Document;
             var app = commandData.Application.Application;
+
+            // Check if the project was initialized 
+            if (doc.ProjectInformation.LookupParameter("EvacuationModelName") == null)
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+                return Result.Failed;
+            }
 
             // Select folder
 

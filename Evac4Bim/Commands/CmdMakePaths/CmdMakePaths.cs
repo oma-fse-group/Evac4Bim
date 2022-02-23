@@ -62,7 +62,20 @@ namespace Evac4Bim
 
             //Querry rooms which are not corridors
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room)).Where(room => room.LookupParameter("isCorridor").AsInteger() == 0).ToList();
+            List<Element> rooms = new List<Element>();
+            try
+            {
+                rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room)).Where(room => room.LookupParameter("isCorridor").AsInteger() == 0).ToList();
+            }
+            catch
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+
+                tx.RollBack();
+                return Result.Failed;
+            }
+
+             
 
 
             // List of storeys 
@@ -268,10 +281,23 @@ namespace Evac4Bim
 
             //Querry all doors in the model which are exits (can be a room exit or a discharge exit)
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            IEnumerable<Element> doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("FireExit").AsInteger() == 1);
-            //List<Element> roomExitList = doorsList.ToList();
-            List<Element> dischargeExitList = doorsList.Where(door => door.LookupParameter("DischargeExit").AsInteger() == 1).Where(door => door.LevelId == roomLevel).ToList();
+            IEnumerable<Element> doorsList = null;
+            List<Element> dischargeExitList = new List<Element>();
+            try
+            {
+                doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("FireExit").AsInteger() == 1);
+                dischargeExitList = doorsList.Where(door => door.LookupParameter("DischargeExit").AsInteger() == 1).Where(door => door.LevelId == roomLevel).ToList();
+            }
+            catch
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
 
+                 
+                return Result.Failed;
+            }
+            
+
+ 
             if (dischargeExitList.Count() == 0)
             {
 

@@ -32,7 +32,18 @@ namespace Evac4Bim
             // {name=Fruin2;speed=;speedProfile=Normal(0.6,1.8,1.2,0.2); diameter=45.58;isMobilityImpaired=False}{name=default;speed=1.19;speedProfile=Constant; diameter=45.58;isMobilityImpaired=False} ...
             string paramName = "OccupantProfilesList";
             List<OccupantProfile> profilesList = new List<OccupantProfile>();
+
+            if (projInfo.LookupParameter(paramName) == null)
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
+                 return Result.Failed;
+            }
+
+
             Parameter param = projInfo.LookupParameter(paramName);
+
+
+
             if (param.AsString() != null && param.AsString() != "")
             {
                 string[] profilesListString = param.AsString().Split('}');

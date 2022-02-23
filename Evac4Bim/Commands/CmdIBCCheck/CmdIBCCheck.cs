@@ -20,7 +20,7 @@ namespace Evac4Bim
         Document doc { get; set; }
         private double EgressCapacityPerOccupant { get; set; }
         private double StairCapacityPerOccupant { get; set; }
-        private int MaxOccupantLoadPerRoom_1006_2_1 { get; set; }
+        private int OccupancyNumberLimitSingleExitSpace { get; set; }
         private int SprinklerProtection { get; set; }
         private int EmergencyCommunication { get; set; }
         double ReqDistanceBetweenExitDoorsFactor { get; set; }
@@ -50,21 +50,31 @@ namespace Evac4Bim
 
 
             // Init project parameters 
-            this.EgressCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("EgressCapacityPerOccupant").AsString());
-            this.StairCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("StairCapacityPerOccupant").AsString());
-            this.MaxOccupantLoadPerRoom_1006_2_1 = Int32.Parse(projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").AsString());
-            this.SprinklerProtection = projInfo.LookupParameter("SprinklerProtection").AsInteger();
-            this.EmergencyCommunication = projInfo.LookupParameter("EmergencyCommunication").AsInteger();
-            this.EgressPathTravelDistanceLimitLowOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").AsString());
-            this.EgressPathTravelDistanceLimitHighOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").AsString());
-            this.EgressPathTravelDistanceLimit = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimit").AsString());
-            // distance between two doors = factor * diagonal 
-            // factor = {0.5 0.33}
-            this.ReqDistanceBetweenExitDoorsFactor = 0.5;
-            if (this.SprinklerProtection == 1 && this.EmergencyCommunication == 1)
+            try
             {
-                ReqDistanceBetweenExitDoorsFactor = 0.33;
+                this.EgressCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("EgressCapacityPerOccupant").AsString());
+                this.StairCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("StairCapacityPerOccupant").AsString());
+                this.OccupancyNumberLimitSingleExitSpace = Int32.Parse(projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").AsString());
+                this.SprinklerProtection = projInfo.LookupParameter("SprinklerProtection").AsInteger();
+                this.EmergencyCommunication = projInfo.LookupParameter("EmergencyCommunication").AsInteger();
+                this.EgressPathTravelDistanceLimitLowOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").AsString());
+                this.EgressPathTravelDistanceLimitHighOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").AsString());
+                this.EgressPathTravelDistanceLimit = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimit").AsString());
+                // distance between two doors = factor * diagonal 
+                // factor = {0.5 0.33}
+                this.ReqDistanceBetweenExitDoorsFactor = 0.5;
+                if (this.SprinklerProtection == 1 && this.EmergencyCommunication == 1)
+                {
+                    ReqDistanceBetweenExitDoorsFactor = 0.33;
+                }
             }
+            catch
+            {
+                TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project and setting the building group !");
+
+                return Result.Failed;
+            }
+            
 
 
             //TaskDialog.Show("Debug", "Exit  : " + EgressPathTravelDistanceLimitLowOccupancy.ToString());
@@ -76,7 +86,7 @@ namespace Evac4Bim
 
             //Querry rooms which are not corridors
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room)).Where(room => room.LookupParameter("isCorridor").AsInteger() == 0).Where(room => room.LookupParameter("ExcludeComponent").AsInteger() == 0).ToList();
+            List<Element> rooms = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).WhereElementIsNotElementType().Where(room => room.GetType() == typeof(Room)).Where(room => room.LookupParameter("isCorridor").AsInteger() != 1).Where(room => room.LookupParameter("ExcludeComponent").AsInteger() != 1).ToList();
 
             //Querry all doors in the model which are exits (can be a room exit or a discharge exit)
             IEnumerable<Element> doorsList = collector.OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().Where(room => room.LookupParameter("FireExit").AsInteger() == 1);
@@ -104,7 +114,15 @@ namespace Evac4Bim
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
             /// 1 . Checking room egress capacity + occupant load 
-           ibcCheckRooms(rooms, roomExitList);
+            int result = 0; 
+           ibcCheckRooms(rooms, roomExitList, out result);
+
+            if (result == -1)
+            {
+                TaskDialog.Show("Error", "Some rooms have not been initialized. Room Functions must be defined first !\nRooms can be dismissed by checking the \"ExcludeElement\" option. ");
+                tx.RollBack();
+                return Result.Failed;
+            }
 
             /// 2 . Check Building 
             ibcCheckBuilding();
@@ -124,7 +142,7 @@ namespace Evac4Bim
             highlightStairs(allStairs);
 
             // Confirmation
-            TaskDialog.Show("Result", "Check is over");
+            TaskDialog.Show("Result", "IBC prescription check completed successfully !");
 
             tx.Commit();
             return Result.Succeeded;
@@ -134,252 +152,270 @@ namespace Evac4Bim
 
 
         // member methods      
-
-        public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList)
+        /// <summary>
+        /// Returns -1 if any rooms was not set correctly - If user wants to dismiss any room ==>Tick the ExcludeComponent option ! 
+        /// </summary>
+        /// <param name="rooms"></param>
+        /// <param name="roomExitList"></param>
+        public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList, out int result)
         {
 
             //Loop through rooms 
-
+            result = 1;
             foreach (Element r in rooms)
             {
-                // C.1 Find doors belonging to current room
-                string roomName = r.LookupParameter("Name").AsString();
-
-                List<Element> r_exits = roomExitList.OfType<FamilyInstance>().Where(door => door.FromRoom.LookupParameter("Name").AsString() == roomName).OfType<Element>().ToList();
-
-                // C.2 Compute the required exit capacity 
-                int OccupancyNumberSpace = 0;
-                string roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsString();
-                if (roomOccupantLoadStr == "" || roomOccupantLoadStr == null)
+                // ensure room was defined corrrectly 
+                if (r.LookupParameter("Category").AsString() != null && r.LookupParameter("Category").AsString() !="")
                 {
-                    // if it is not set, use the IBC default value 
-                    OccupancyNumberSpace = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
-                    r.LookupParameter("OccupancyNumberSpace").Set(OccupancyNumberSpace.ToString());
-                }
-                else
-                {
-                    OccupancyNumberSpace = Int32.Parse(roomOccupantLoadStr);
-                }
-                double EgressCapacityRequirement = EgressCapacityPerOccupant * OccupancyNumberSpace;
-                if (EgressCapacityRequirement < MIN_EXIT_DOOR_WIDTH)
-                {
-                    EgressCapacityRequirement = MIN_EXIT_DOOR_WIDTH; // avoid too smal values 
-                }
-                r.LookupParameter("EgressCapacityRequirement").Set(EgressCapacityRequirement.ToString());
+ 
+                    // C.1 Find doors belonging to current room
+                    string roomName = r.LookupParameter("Name").AsString();
 
+                    List<Element> r_exits = roomExitList.OfType<FamilyInstance>().Where(door => door.FromRoom.LookupParameter("Name").AsString() == roomName).OfType<Element>().ToList();
 
-                double EgressPathTravelDistance = -1;
-                Double.TryParse(r.LookupParameter("EgressPathTravelDistance").AsString(), out EgressPathTravelDistance);
-
-                // C.3 Compute the requried number of exits 
-                int ExitCountRequirement = 1;
-                if (OccupancyNumberSpace >= 1000) { ExitCountRequirement = 4; }
-                else if (OccupancyNumberSpace < 1000 && OccupancyNumberSpace >= 500) { ExitCountRequirement = 3; }
-                else if (OccupancyNumberSpace > MaxOccupantLoadPerRoom_1006_2_1) { ExitCountRequirement = 2; }
-                else if (SprinklerProtection == 1)
-                {
-                    if (EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
-                }
-                else if (SprinklerProtection == 0)
-                {
-                    if (OccupancyNumberSpace > 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
-                    else if (OccupancyNumberSpace <= 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitHighOccupancy) { ExitCountRequirement = 2; }
-
-                }
-                // else, it stays == 1
-                r.LookupParameter("ExitCountRequirement").Set(ExitCountRequirement.ToString());
-
-                // C.4 Loop through exit doors of current room
-                int ExitCount = 0;
-                double EgressCapacity = 0;
-                List<double> widths = new List<double>();
-                List<XYZ> doorLocations = new List<XYZ>();
-
-                foreach (Element d in r_exits)
-                {
-                    FamilyInstance d_f = d as FamilyInstance;
-
-                    // C.4.1 : Check if door has required minimum size 
-
-                    double width = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble(), UnitTypeId.Millimeters);
-                    double height = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT).AsDouble(), UnitTypeId.Millimeters);
-
-                    if (width == 0)
+                    // C.2 Compute the required exit capacity 
+                    int OccupancyNumberSpace = 0;
+                    string roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsString();
+                    if (roomOccupantLoadStr == "" || roomOccupantLoadStr == null)
                     {
-                        // could be a curtain door 
-                        width = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Width").AsDouble(), UnitTypeId.Millimeters);
-                    }
-                    if (height == 0)
-                    {
-                        height = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Height").AsDouble(), UnitTypeId.Millimeters);
-                    }
-
-
-
-                    if (width >= MIN_EXIT_DOOR_WIDTH && height >= MIN_EXIT_DOOR_HEIGHT)
-                    {
-                        d.LookupParameter("DimensionAdequate").Set("True");
+                        // if it is not set, use the IBC default value 
+                        OccupancyNumberSpace = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
+                        r.LookupParameter("OccupancyNumberSpace").Set(OccupancyNumberSpace.ToString());
                     }
                     else
                     {
+                        OccupancyNumberSpace = Int32.Parse(roomOccupantLoadStr);
+                    }
+                    double EgressCapacityRequirement = EgressCapacityPerOccupant * OccupancyNumberSpace;
+                    if (EgressCapacityRequirement < MIN_EXIT_DOOR_WIDTH)
+                    {
+                        EgressCapacityRequirement = MIN_EXIT_DOOR_WIDTH; // avoid too smal values 
+                    }
+                    r.LookupParameter("EgressCapacityRequirement").Set(EgressCapacityRequirement.ToString());
+
+
+                    double EgressPathTravelDistance = -1;
+                    Double.TryParse(r.LookupParameter("EgressPathTravelDistance").AsString(), out EgressPathTravelDistance);
+                    
+
+                    // C.3 Compute the requried number of exits 
+                    int ExitCountRequirement = 1;
+                    if (OccupancyNumberSpace >= 1000) { ExitCountRequirement = 4; }
+                    else if (OccupancyNumberSpace < 1000 && OccupancyNumberSpace >= 500) { ExitCountRequirement = 3; }
+                    else if (OccupancyNumberSpace > OccupancyNumberLimitSingleExitSpace) { ExitCountRequirement = 2; }
+                    else if (SprinklerProtection == 1)
+                    {
+                        if (EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
+                    }
+                    else if (SprinklerProtection == 0)
+                    {
+                        if (OccupancyNumberSpace > 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitLowOccupancy) { ExitCountRequirement = 2; }
+                        else if (OccupancyNumberSpace <= 30 && EgressPathTravelDistance > EgressPathTravelDistanceLimitHighOccupancy) { ExitCountRequirement = 2; }
+
+                    }
+                    // else, it stays == 1
+                    r.LookupParameter("ExitCountRequirement").Set(ExitCountRequirement.ToString());
+
+                    // C.4 Loop through exit doors of current room
+                    int ExitCount = 0;
+                    double EgressCapacity = 0;
+                    List<double> widths = new List<double>();
+                    List<XYZ> doorLocations = new List<XYZ>();
+
+                    foreach (Element d in r_exits)
+                    {
+                        FamilyInstance d_f = d as FamilyInstance;
+
+                        // C.4.1 : Check if door has required minimum size 
+
+                        double width = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble(), UnitTypeId.Millimeters);
+                        double height = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT).AsDouble(), UnitTypeId.Millimeters);
+
                         if (width == 0)
                         {
-                            d.LookupParameter("DimensionAdequate").Set("Error. Width not found");
+                            // could be a curtain door 
+                            width = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Width").AsDouble(), UnitTypeId.Millimeters);
+                        }
+                        if (height == 0)
+                        {
+                            height = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Height").AsDouble(), UnitTypeId.Millimeters);
+                        }
+
+
+
+                        if (width >= MIN_EXIT_DOOR_WIDTH && height >= MIN_EXIT_DOOR_HEIGHT)
+                        {
+                            d.LookupParameter("DimensionAdequate").Set("True");
+                        }
+                        else
+                        {
+                            if (width == 0)
+                            {
+                                d.LookupParameter("DimensionAdequate").Set("Error. Width not found");
+
+                            }
+                            else
+                            {
+                                d.LookupParameter("DimensionAdequate").Set("False");
+
+                            }
+                        }
+
+
+                        // C.4.2 : Append the number of exits belonging to this room 
+                        ExitCount++;
+
+
+                        // C.4.3 : Append the available egress capacity for this room
+                        EgressCapacity += width;
+
+                        // C.5 Check if egress capacity is well balanced 
+                        widths.Add(width);
+
+                        // C.6 Store door location for later use 
+                        XYZ doorLocation = null;
+
+                        if (d.Location == null)
+                        {
+                            // can be a curtain glass 
+                            // fetch origin from family instnce
+                            FamilyInstance exitEleFamIns = d as FamilyInstance;
+                            doorLocation = exitEleFamIns.GetTransform().Origin;
 
                         }
                         else
                         {
-                            d.LookupParameter("DimensionAdequate").Set("False");
-
+                            doorLocation = (d.Location as LocationPoint).Point;
                         }
+                        doorLocations.Add(doorLocation);
+                        //TaskDialog.Show("Debug", XYZToString((d.Location as LocationPoint).Point));
+
                     }
 
+                    // C.4.2 : check the number of exits belonging to this room
+                    r.LookupParameter("ExitCount").Set(ExitCount.ToString());
+                    //ExitCountAdequate EgressCapacityBalance
+                    string ExitCountAdequate = "True";
+                    if (ExitCount < ExitCountRequirement)
+                    {
+                        ExitCountAdequate = "False";
+                    }
+                    r.LookupParameter("ExitCountAdequate").Set(ExitCountAdequate);
 
-                    // C.4.2 : Append the number of exits belonging to this room 
-                    ExitCount++;
-
-
-                    // C.4.3 : Append the available egress capacity for this room
-                    EgressCapacity += width;
+                    // C.4.3 : Check the available egress capacity for this room
+                    r.LookupParameter("EgressCapacity").Set(EgressCapacity.ToString());
+                    string EgressCapacityAdequate = "True";
+                    if (EgressCapacity < EgressCapacityRequirement)
+                    {
+                        EgressCapacityAdequate = "False";
+                    }
+                    r.LookupParameter("EgressCapacityAdequate").Set(EgressCapacityAdequate);
 
                     // C.5 Check if egress capacity is well balanced 
-                    widths.Add(width);
+                    // If, by substracting one of the doors, the residual capacity is still 50% or more of the initial capacity 
+                    // Total capacity 
+                    double total_w = widths.Sum();
+                    string EgressCapacityBalance = "True";
 
-                    // C.6 Store door location for later use 
-                    XYZ doorLocation = null;
-
-                    if (d.Location == null)
+                    if (ExitCount > 1)
                     {
-                        // can be a curtain glass 
-                        // fetch origin from family instnce
-                        FamilyInstance exitEleFamIns = d as FamilyInstance;
-                        doorLocation = exitEleFamIns.GetTransform().Origin;
-
-                    }
-                    else
-                    {
-                        doorLocation = (d.Location as LocationPoint).Point;
-                    }
-                    doorLocations.Add(doorLocation);
-                    //TaskDialog.Show("Debug", XYZToString((d.Location as LocationPoint).Point));
-
-                }
-
-                // C.4.2 : check the number of exits belonging to this room
-                r.LookupParameter("ExitCount").Set(ExitCount.ToString());
-                //ExitCountAdequate EgressCapacityBalance
-                string ExitCountAdequate = "True";
-                if (ExitCount < ExitCountRequirement)
-                {
-                    ExitCountAdequate = "False";
-                }
-                r.LookupParameter("ExitCountAdequate").Set(ExitCountAdequate);
-
-                // C.4.3 : Check the available egress capacity for this room
-                r.LookupParameter("EgressCapacity").Set(EgressCapacity.ToString());
-                string EgressCapacityAdequate = "True";
-                if (EgressCapacity < EgressCapacityRequirement)
-                {
-                    EgressCapacityAdequate = "False";
-                }
-                r.LookupParameter("EgressCapacityAdequate").Set(EgressCapacityAdequate);
-
-                // C.5 Check if egress capacity is well balanced 
-                // If, by substracting one of the doors, the residual capacity is still 50% or more of the initial capacity 
-                // Total capacity 
-                double total_w = widths.Sum();
-                string EgressCapacityBalance = "True";
-
-                if (ExitCount > 1)
-                {
-                    // only applicable if more than 1 exit
-                    foreach (double w in widths)
-                    {
-                        double residual_w = total_w - w;
-                        if (residual_w < 0.5 * total_w)
+                        // only applicable if more than 1 exit
+                        foreach (double w in widths)
                         {
-                            EgressCapacityBalance = "False";
-                            break;
-                        }
-                    }
-                }
-
-                r.LookupParameter("EgressCapacityBalance").Set(EgressCapacityBalance);
-
-
-
-
-                // C.6 Check if distances between exits are okay (if multiple exits)
-                // At least two doors are separated by a distance superior to ReqDistanceBetweenExitDoors
-                // Get the diagonal length of the room = distance between two furthest points 
-
-                double roomDiagonal = IBCCheckUtils.GetRoomDiagonalDist(r as Room); // in millimeters
-                double ReqDistanceBetweenExitDoors = ReqDistanceBetweenExitDoorsFactor * roomDiagonal;
-                bool EgressComponentsPlacement = true; // by default - only one door
-
-                //TaskDialog.Show("ReqDistanceBetweenExitDoors", ReqDistanceBetweenExitDoors.ToString());
-                if (ExitCount > 1)
-                {
-                    EgressComponentsPlacement = false; // by default if multiple doors 
-
-                    // more than two exits, need to check distances
-                    for (int i = 0; i < doorLocations.Count(); i++)
-                    {
-                        XYZ p_i = doorLocations[i];
-                        for (int j = i + 1; j < doorLocations.Count(); j++)
-                        {
-                            XYZ p_j = doorLocations[j];
-                            double distance = p_i.DistanceTo(p_j);
-                            distance = Math.Round(UnitUtils.ConvertFromInternalUnits(distance, UnitTypeId.Millimeters), 0);
-
-                            //TaskDialog.Show("Doors", distance.ToString());
-                            if (distance > ReqDistanceBetweenExitDoors)
+                            double residual_w = total_w - w;
+                            if (residual_w < 0.5 * total_w)
                             {
-                                EgressComponentsPlacement = true;
+                                EgressCapacityBalance = "False";
                                 break;
                             }
-
-
                         }
-                        if (EgressComponentsPlacement)
-                        {
-                            break; // no need to look further
-                        }
-
                     }
 
-                    //TaskDialog.Show("Doors", EgressComponentsPlacement.ToString());
-
-                }
-                r.LookupParameter("DiagonalLength").Set(roomDiagonal.ToString());
-                r.LookupParameter("EgressComponentsPlacement").Set(EgressComponentsPlacement.ToString());
+                    r.LookupParameter("EgressCapacityBalance").Set(EgressCapacityBalance);
 
 
 
-                // C.7 check if occupant load is exceeded
-                string OccupancyNumberExcess = "False";
-                int OccupancyNumberLimit = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
-                if (OccupancyNumberSpace > OccupancyNumberLimit)
+
+                    // C.6 Check if distances between exits are okay (if multiple exits)
+                    // At least two doors are separated by a distance superior to ReqDistanceBetweenExitDoors
+                    // Get the diagonal length of the room = distance between two furthest points 
+
+                    double roomDiagonal = IBCCheckUtils.GetRoomDiagonalDist(r as Room); // in millimeters
+                    double ReqDistanceBetweenExitDoors = ReqDistanceBetweenExitDoorsFactor * roomDiagonal;
+                    bool EgressComponentsPlacement = true; // by default - only one door
+
+                    //TaskDialog.Show("ReqDistanceBetweenExitDoors", ReqDistanceBetweenExitDoors.ToString());
+                    if (ExitCount > 1)
+                    {
+                        EgressComponentsPlacement = false; // by default if multiple doors 
+
+                        // more than two exits, need to check distances
+                        for (int i = 0; i < doorLocations.Count(); i++)
+                        {
+                            XYZ p_i = doorLocations[i];
+                            for (int j = i + 1; j < doorLocations.Count(); j++)
+                            {
+                                XYZ p_j = doorLocations[j];
+                                double distance = p_i.DistanceTo(p_j);
+                                distance = Math.Round(UnitUtils.ConvertFromInternalUnits(distance, UnitTypeId.Millimeters), 0);
+
+                                //TaskDialog.Show("Doors", distance.ToString());
+                                if (distance > ReqDistanceBetweenExitDoors)
+                                {
+                                    EgressComponentsPlacement = true;
+                                    break;
+                                }
+
+
+                            }
+                            if (EgressComponentsPlacement)
+                            {
+                                break; // no need to look further
+                            }
+
+                        }
+
+                        //TaskDialog.Show("Doors", EgressComponentsPlacement.ToString());
+
+                    }
+                    r.LookupParameter("DiagonalLength").Set(roomDiagonal.ToString());
+                    r.LookupParameter("EgressComponentsPlacement").Set(EgressComponentsPlacement.ToString());
+
+
+
+                    // C.7 check if occupant load is exceeded
+                    string OccupancyNumberExcess = "False";
+                    int OccupancyNumberLimit = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
+                    if (OccupancyNumberSpace > OccupancyNumberLimit)
+                    {
+                        OccupancyNumberExcess = "True";
+                    }
+
+                    r.LookupParameter("OccupancyNumberExcess").Set(OccupancyNumberExcess);
+
+
+                    // C.8 chck travel distance             
+
+                    // EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
+                    string EgressPathTravelDistanceExcess = "False";
+                    if (EgressPathTravelDistance > EgressPathTravelDistanceLimit || EgressPathTravelDistance <= 0)
+                    {
+                        // if EgressPathTravelDistance <= 0 ==> there is an error
+                        EgressPathTravelDistanceExcess = "True";
+                    }
+                    r.LookupParameter("EgressPathTravelDistanceExcess").Set(EgressPathTravelDistanceExcess);
+
+                 }
+
+                else
                 {
-                    OccupancyNumberExcess = "True";
+                   // TaskDialog.Show("Error", r.Name);
+                    result = -1;
                 }
 
-                r.LookupParameter("OccupancyNumberExcess").Set(OccupancyNumberExcess);
-
-
-                // C.8 chck travel distance             
-
-                // EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
-                string EgressPathTravelDistanceExcess = "False";
-                if (EgressPathTravelDistance > EgressPathTravelDistanceLimit)
-                {
-                    EgressPathTravelDistanceExcess = "True";
-                }
-                r.LookupParameter("EgressPathTravelDistanceExcess").Set(EgressPathTravelDistanceExcess);
-
+                 
 
             }
-
         }
         public void ibcCheckBuilding()
         {
@@ -1107,9 +1143,10 @@ namespace Evac4Bim
 
                     // cannot access location/coordinates of floor or floor planes or view so,
                     // find a random room and place the note box on it - hoping the user will notice it :) 
-                    Element r = rooms.Where(room => room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsElementId() == l.Id).ToList().First();
-                    if (r != null)
+                    List<Element> rList = rooms.Where(room => room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsElementId() == l.Id).ToList();
+                    if (rList.Count() > 0)
                     {
+                        Element r = rList.First();
                         origin = (r.Location as LocationPoint).Point;
                     }
                     else
