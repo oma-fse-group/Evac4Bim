@@ -62,8 +62,11 @@ namespace Evac4Bim
             ParameterTypeDict.Add("YesNo", ParameterType.YesNo); //adding a key/value using the Add() method
             ParameterTypeDict.Add("TEXT", ParameterType.Text); //adding a key/value using the Add() method
             ParameterTypeDict.Add("NUMBER", ParameterType.Number); //adding a key/value using the Add() method
-            
-
+            ParameterTypeDict.Add("AREA", ParameterType.Area);
+            ParameterTypeDict.Add("INTEGER", ParameterType.Integer);
+            ParameterTypeDict.Add("LENGTH", ParameterType.Length);
+            ParameterTypeDict.Add("PERIOD", ParameterType.Period);
+ 
             string paramList = "";
             int paramCount = 0;
             string msg = "The following parameters were loaded and configured succesfuly :";

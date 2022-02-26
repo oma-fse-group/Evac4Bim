@@ -134,7 +134,7 @@ namespace Evac4Bim
 
             // Add a command to the ribbon 
             path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdCreateSchedules.dll";
-            PushButtonData CmdCreateSchedulesButton = new PushButtonData("CmdCreateSchedules", "Schedule\nResult", path2, "Evac4Bim.CmdCreateSchedules");
+            PushButtonData CmdCreateSchedulesButton = new PushButtonData("CmdCreateSchedules", "Schedule\nResults", path2, "Evac4Bim.CmdCreateSchedules");
             // Create img icon 
            
             Uri CmdCreateSchedulesButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+ @"\icons\CmdCreateSchedules.png");

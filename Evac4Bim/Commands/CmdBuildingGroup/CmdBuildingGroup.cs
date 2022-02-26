@@ -192,16 +192,24 @@ namespace Evac4Bim
             // 3.8 mm if sprinkler + alarm + building class is not H or I-2
             if (!OccupancyType.Contains("H") && !OccupancyType.Contains("I2") && hasSpk ==1 && EmergencyCommunication == 1)
             {
-                EgressCapacityPerOccupant.Set("3.8");
-                StairCapacityPerOccupant.Set("5.1");
+
+                //EgressCapacityPerOccupant.Set("3.8");
+                EgressCapacityPerOccupant.Set(UnitUtils.Convert(3.8, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                //StairCapacityPerOccupant.Set("5.1");
+                StairCapacityPerOccupant.Set(UnitUtils.Convert(5.1, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
             }
             else
             {
-                EgressCapacityPerOccupant.Set("5.1");
-                StairCapacityPerOccupant.Set("7.6");
+                //EgressCapacityPerOccupant.Set("5.1");
+                EgressCapacityPerOccupant.Set(UnitUtils.Convert(5.1, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                //StairCapacityPerOccupant.Set("7.6");
+                StairCapacityPerOccupant.Set(UnitUtils.Convert(7.6, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
             }
-                
+
 
         }
 
@@ -248,7 +256,7 @@ namespace Evac4Bim
             }
 
             // set parameter 
-            projInfo.LookupParameter("EgressPathTravelDistanceLimit").Set(lengths[i].ToString());
+            projInfo.LookupParameter("EgressPathTravelDistanceLimit").Set(UnitUtils.Convert(Double.Parse(lengths[i].ToString()), UnitTypeId.Millimeters, UnitTypeId.Feet));
 
             return Result.Succeeded;
         }
@@ -295,20 +303,22 @@ namespace Evac4Bim
             }
 
             // set parameters 
-            projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").Set(col1[i].ToString());
+            int OccupancyNumberLimitSingleExitSpace = int.Parse(col1[i].ToString());
+            projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").Set(OccupancyNumberLimitSingleExitSpace);
 
             // depending on presence of sprinkler or no 
             int hasSpk = projInfo.LookupParameter("SprinklerProtection").AsInteger();
             if (hasSpk == 1)
             {
                 // duplicate the value
-                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(col4[i].ToString());
-                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(col4[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(UnitUtils.Convert(Double.Parse(col4[i].ToString()), UnitTypeId.Millimeters, UnitTypeId.Feet));
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(UnitUtils.Convert(Double.Parse(col4[i].ToString()), UnitTypeId.Millimeters, UnitTypeId.Feet));
             }
             else
             {
-                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(col2[i].ToString());
-                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(col3[i].ToString());
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").Set(UnitUtils.Convert(Double.Parse(col2[i].ToString()), UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").Set(UnitUtils.Convert(Double.Parse(col3[i].ToString()), UnitTypeId.Millimeters, UnitTypeId.Feet));
 
             }
 

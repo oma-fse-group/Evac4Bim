@@ -9,7 +9,12 @@ using Autodesk.Revit.DB.Analysis;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
-
+/// <summary>
+/// Variables of type "length" are stored in Revit as "feet" 
+/// Therefore, everytime the values are set => convert into feet 
+/// Everytime the values are gathered from Revit => convert into mm 
+/// When exporting to Ifc, revit will automatically convert feet to m 
+/// </summary>
 
 namespace Evac4Bim
 {
@@ -35,7 +40,8 @@ namespace Evac4Bim
         public const double MIN_RISER_HEIGHT = 102; // mm
         public const double MAX_RISER_HEIGHT = 178; // mm
         public const double MIN_TREAD_DEPTH = 279; // mm
-
+        public const int FALSE = 0;
+        public const int TRUE = 1;
 
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -52,14 +58,17 @@ namespace Evac4Bim
             // Init project parameters 
             try
             {
-                this.EgressCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("EgressCapacityPerOccupant").AsString());
-                this.StairCapacityPerOccupant = Double.Parse(projInfo.LookupParameter("StairCapacityPerOccupant").AsString());
-                this.OccupancyNumberLimitSingleExitSpace = Int32.Parse(projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").AsString());
+                this.EgressCapacityPerOccupant = UnitUtils.ConvertFromInternalUnits(projInfo.LookupParameter("EgressCapacityPerOccupant").AsDouble(), UnitTypeId.Millimeters);  
+                  
+                this.StairCapacityPerOccupant = UnitUtils.ConvertFromInternalUnits(projInfo.LookupParameter("StairCapacityPerOccupant").AsDouble(), UnitTypeId.Millimeters);
+
+
+                this.OccupancyNumberLimitSingleExitSpace = projInfo.LookupParameter("OccupancyNumberLimitSingleExitSpace").AsInteger();
                 this.SprinklerProtection = projInfo.LookupParameter("SprinklerProtection").AsInteger();
                 this.EmergencyCommunication = projInfo.LookupParameter("EmergencyCommunication").AsInteger();
-                this.EgressPathTravelDistanceLimitLowOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").AsString());
-                this.EgressPathTravelDistanceLimitHighOccupancy = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").AsString());
-                this.EgressPathTravelDistanceLimit = Double.Parse(projInfo.LookupParameter("EgressPathTravelDistanceLimit").AsString());
+                this.EgressPathTravelDistanceLimitLowOccupancy = UnitUtils.ConvertFromInternalUnits(projInfo.LookupParameter("EgressPathTravelDistanceLimitLowOccupancy").AsDouble(), UnitTypeId.Millimeters); 
+                this.EgressPathTravelDistanceLimitHighOccupancy =  UnitUtils.ConvertFromInternalUnits(projInfo.LookupParameter("EgressPathTravelDistanceLimitHighOccupancy").AsDouble(), UnitTypeId.Millimeters);
+                this.EgressPathTravelDistanceLimit = UnitUtils.ConvertFromInternalUnits(projInfo.LookupParameter("EgressPathTravelDistanceLimit").AsDouble(), UnitTypeId.Millimeters);
                 // distance between two doors = factor * diagonal 
                 // factor = {0.5 0.33}
                 this.ReqDistanceBetweenExitDoorsFactor = 0.5;
@@ -113,8 +122,11 @@ namespace Evac4Bim
 
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
+            /// 0. Checking door sizes 
+            ibcCheckDoorExits(roomExitList);
+
             /// 1 . Checking room egress capacity + occupant load 
-            int result = 0; 
+           int result = 0; 
            ibcCheckRooms(rooms, roomExitList, out result);
 
             if (result == -1)
@@ -151,13 +163,60 @@ namespace Evac4Bim
 
 
 
-        // member methods      
-        /// <summary>
-        /// Returns -1 if any rooms was not set correctly - If user wants to dismiss any room ==>Tick the ExcludeComponent option ! 
-        /// </summary>
-        /// <param name="rooms"></param>
-        /// <param name="roomExitList"></param>
-        public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList, out int result)
+        // member methods
+        // 
+        public void ibcCheckDoorExits(List<Element> roomExitList)
+        {
+            foreach (Element d in roomExitList)
+            {
+                FamilyInstance d_f = d as FamilyInstance;
+
+                // C.4.1 : Check if door has required minimum size 
+
+                double width = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble(), UnitTypeId.Millimeters);
+                double height = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT).AsDouble(), UnitTypeId.Millimeters);
+
+                if (width == 0)
+                {
+                    // could be a curtain door 
+                    width = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Width").AsDouble(), UnitTypeId.Millimeters);
+                }
+                if (height == 0)
+                {
+                    height = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Height").AsDouble(), UnitTypeId.Millimeters);
+                }
+
+
+
+                if (width >= MIN_EXIT_DOOR_WIDTH && height >= MIN_EXIT_DOOR_HEIGHT)
+                {
+                    d.LookupParameter("DimensionAdequate").Set(TRUE);
+                }
+                else
+                {
+                    // TaskDialog.Show("Debug", d.Id.ToString());
+                    if (width == 0)
+                    {
+                        d.LookupParameter("DimensionAdequate").Set(FALSE);
+
+                    }
+                    else
+                    {
+                        d.LookupParameter("DimensionAdequate").Set(FALSE);
+
+                    }
+                }
+
+            }
+
+            }
+
+            /// <summary>
+            /// Returns -1 if any rooms was not set correctly - If user wants to dismiss any room ==>Tick the ExcludeComponent option ! 
+            /// </summary>
+            /// <param name="rooms"></param>
+            /// <param name="roomExitList"></param>
+            public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList, out int result)
         {
 
             //Loop through rooms 
@@ -175,28 +234,27 @@ namespace Evac4Bim
 
                     // C.2 Compute the required exit capacity 
                     int OccupancyNumberSpace = 0;
-                    string roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsString();
-                    if (roomOccupantLoadStr == "" || roomOccupantLoadStr == null)
+                    int roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsInteger();
+                    if (roomOccupantLoadStr == 0)
                     {
                         // if it is not set, use the IBC default value 
-                        OccupancyNumberSpace = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
-                        r.LookupParameter("OccupancyNumberSpace").Set(OccupancyNumberSpace.ToString());
+                        OccupancyNumberSpace = r.LookupParameter("OccupancyNumberLimit").AsInteger();
+                        r.LookupParameter("OccupancyNumberSpace").Set(OccupancyNumberSpace);
                     }
                     else
                     {
-                        OccupancyNumberSpace = Int32.Parse(roomOccupantLoadStr);
+                        OccupancyNumberSpace = roomOccupantLoadStr;
                     }
                     double EgressCapacityRequirement = EgressCapacityPerOccupant * OccupancyNumberSpace;
                     if (EgressCapacityRequirement < MIN_EXIT_DOOR_WIDTH)
                     {
                         EgressCapacityRequirement = MIN_EXIT_DOOR_WIDTH; // avoid too smal values 
                     }
-                    r.LookupParameter("EgressCapacityRequirement").Set(EgressCapacityRequirement.ToString());
+                    r.LookupParameter("EgressCapacityRequirement").Set(UnitUtils.Convert(EgressCapacityRequirement, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                    double EgressPathTravelDistance = UnitUtils.ConvertFromInternalUnits(r.LookupParameter("EgressPathTravelDistance").AsDouble(), UnitTypeId.Millimeters);
 
 
-                    double EgressPathTravelDistance = -1;
-                    Double.TryParse(r.LookupParameter("EgressPathTravelDistance").AsString(), out EgressPathTravelDistance);
-                    
 
                     // C.3 Compute the requried number of exits 
                     int ExitCountRequirement = 1;
@@ -214,7 +272,7 @@ namespace Evac4Bim
 
                     }
                     // else, it stays == 1
-                    r.LookupParameter("ExitCountRequirement").Set(ExitCountRequirement.ToString());
+                    r.LookupParameter("ExitCountRequirement").Set(ExitCountRequirement);
 
                     // C.4 Loop through exit doors of current room
                     int ExitCount = 0;
@@ -226,41 +284,16 @@ namespace Evac4Bim
                     {
                         FamilyInstance d_f = d as FamilyInstance;
 
-                        // C.4.1 : Check if door has required minimum size 
-
+ 
                         double width = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble(), UnitTypeId.Millimeters);
-                        double height = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT).AsDouble(), UnitTypeId.Millimeters);
+                         
 
                         if (width == 0)
                         {
                             // could be a curtain door 
                             width = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Width").AsDouble(), UnitTypeId.Millimeters);
                         }
-                        if (height == 0)
-                        {
-                            height = UnitUtils.ConvertFromInternalUnits(d.LookupParameter("Height").AsDouble(), UnitTypeId.Millimeters);
-                        }
-
-
-
-                        if (width >= MIN_EXIT_DOOR_WIDTH && height >= MIN_EXIT_DOOR_HEIGHT)
-                        {
-                            d.LookupParameter("DimensionAdequate").Set("True");
-                        }
-                        else
-                        {
-                            if (width == 0)
-                            {
-                                d.LookupParameter("DimensionAdequate").Set("Error. Width not found");
-
-                            }
-                            else
-                            {
-                                d.LookupParameter("DimensionAdequate").Set("False");
-
-                            }
-                        }
-
+                         
 
                         // C.4.2 : Append the number of exits belonging to this room 
                         ExitCount++;
@@ -293,21 +326,23 @@ namespace Evac4Bim
                     }
 
                     // C.4.2 : check the number of exits belonging to this room
-                    r.LookupParameter("ExitCount").Set(ExitCount.ToString());
+                    r.LookupParameter("ExitCount").Set(ExitCount);
                     //ExitCountAdequate EgressCapacityBalance
-                    string ExitCountAdequate = "True";
+                    int ExitCountAdequate = TRUE;
                     if (ExitCount < ExitCountRequirement)
                     {
-                        ExitCountAdequate = "False";
+                        ExitCountAdequate = FALSE;
                     }
                     r.LookupParameter("ExitCountAdequate").Set(ExitCountAdequate);
-
+                    //TaskDialog.Show("Debug", ExitCountAdequate.ToString());
                     // C.4.3 : Check the available egress capacity for this room
-                    r.LookupParameter("EgressCapacity").Set(EgressCapacity.ToString());
-                    string EgressCapacityAdequate = "True";
+
+                   r.LookupParameter("EgressCapacity").Set(UnitUtils.Convert(EgressCapacity, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                    int EgressCapacityAdequate = TRUE;
                     if (EgressCapacity < EgressCapacityRequirement)
                     {
-                        EgressCapacityAdequate = "False";
+                        EgressCapacityAdequate = FALSE;
                     }
                     r.LookupParameter("EgressCapacityAdequate").Set(EgressCapacityAdequate);
 
@@ -315,7 +350,7 @@ namespace Evac4Bim
                     // If, by substracting one of the doors, the residual capacity is still 50% or more of the initial capacity 
                     // Total capacity 
                     double total_w = widths.Sum();
-                    string EgressCapacityBalance = "True";
+                    int EgressCapacityBalance = TRUE;
 
                     if (ExitCount > 1)
                     {
@@ -325,7 +360,7 @@ namespace Evac4Bim
                             double residual_w = total_w - w;
                             if (residual_w < 0.5 * total_w)
                             {
-                                EgressCapacityBalance = "False";
+                                EgressCapacityBalance = FALSE;
                                 break;
                             }
                         }
@@ -378,17 +413,19 @@ namespace Evac4Bim
                         //TaskDialog.Show("Doors", EgressComponentsPlacement.ToString());
 
                     }
-                    r.LookupParameter("DiagonalLength").Set(roomDiagonal.ToString());
-                    r.LookupParameter("EgressComponentsPlacement").Set(EgressComponentsPlacement.ToString());
+
+                    r.LookupParameter("DiagonalLength").Set(UnitUtils.Convert(roomDiagonal, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                    r.LookupParameter("EgressComponentsPlacement").Set(Convert.ToInt32(EgressComponentsPlacement));
 
 
 
                     // C.7 check if occupant load is exceeded
-                    string OccupancyNumberExcess = "False";
-                    int OccupancyNumberLimit = Int32.Parse(r.LookupParameter("OccupancyNumberLimit").AsString());
+                    int OccupancyNumberExcess = FALSE;
+                    int OccupancyNumberLimit = r.LookupParameter("OccupancyNumberLimit").AsInteger();
                     if (OccupancyNumberSpace > OccupancyNumberLimit)
                     {
-                        OccupancyNumberExcess = "True";
+                        OccupancyNumberExcess = TRUE;
                     }
 
                     r.LookupParameter("OccupancyNumberExcess").Set(OccupancyNumberExcess);
@@ -397,11 +434,11 @@ namespace Evac4Bim
                     // C.8 chck travel distance             
 
                     // EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
-                    string EgressPathTravelDistanceExcess = "False";
+                    int EgressPathTravelDistanceExcess = FALSE;
                     if (EgressPathTravelDistance > EgressPathTravelDistanceLimit || EgressPathTravelDistance <= 0)
                     {
                         // if EgressPathTravelDistance <= 0 ==> there is an error
-                        EgressPathTravelDistanceExcess = "True";
+                        EgressPathTravelDistanceExcess = TRUE;
                     }
                     r.LookupParameter("EgressPathTravelDistanceExcess").Set(EgressPathTravelDistanceExcess);
 
@@ -420,16 +457,16 @@ namespace Evac4Bim
         public void ibcCheckBuilding()
         {
             // check if required sprinklers were provided
-            string SprinklerProtectionLacking = "False"; // default
-            string SprinklerProtectionRequirement = "False";
+            int SprinklerProtectionLacking = FALSE; // default
+            int SprinklerProtectionRequirement = FALSE;
 
 
             if (EgressPathTravelDistanceLimit == -1)
             {
-                SprinklerProtectionRequirement = "True";
+                SprinklerProtectionRequirement = TRUE;
                 if (SprinklerProtection == 0)
                 {
-                    SprinklerProtectionLacking = "True";
+                    SprinklerProtectionLacking = TRUE;
                 }
 
             }
@@ -458,11 +495,11 @@ namespace Evac4Bim
                 foreach (Element r in roomsInStorey)
                 {
                     // Increment number of occupant
-                    OccupancyNumberStorey += Int32.Parse(r.LookupParameter("OccupancyNumberSpace").AsString());
+                    OccupancyNumberStorey += r.LookupParameter("OccupancyNumberSpace").AsInteger();
 
                 }
                 // Update occupant load of storey 
-                s.LookupParameter("OccupancyNumberStorey").Set(OccupancyNumberStorey.ToString());
+                s.LookupParameter("OccupancyNumberStorey").Set(OccupancyNumberStorey);
 
 
 
@@ -472,7 +509,7 @@ namespace Evac4Bim
                 {
                     EgressCapacityRequirementStorey = MIN_EXIT_DOOR_WIDTH;
                 }
-                s.LookupParameter("EgressCapacityRequirementStorey").Set(EgressCapacityRequirementStorey.ToString());
+                s.LookupParameter("EgressCapacityRequirementStorey").Set(UnitUtils.Convert(EgressCapacityRequirementStorey, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
                 // C.3 Compute the requried number of exits 
                 int ExitCountRequirementStorey = 2;
@@ -480,7 +517,7 @@ namespace Evac4Bim
                 else if (OccupancyNumberStorey <= 1000 && OccupancyNumberStorey > 500) { ExitCountRequirementStorey = 3; }
 
                 // else, it stays == 2
-                s.LookupParameter("ExitCountRequirementStorey").Set(ExitCountRequirementStorey.ToString());
+                s.LookupParameter("ExitCountRequirementStorey").Set(ExitCountRequirementStorey);
 
                 // C.4 Loop through exit doors of current level
                 int ExitCountStorey = 0;
@@ -523,20 +560,22 @@ namespace Evac4Bim
                 }
 
                 // C.4.2 : Check the number of exits belonging to this storey
-                s.LookupParameter("ExitCountStorey").Set(ExitCountStorey.ToString());
-                string ExitCountAdequateStorey = "True";
+                s.LookupParameter("ExitCountStorey").Set(ExitCountStorey);
+                int ExitCountAdequateStorey = TRUE;
                 if (ExitCountStorey < ExitCountRequirementStorey)
                 {
-                    ExitCountAdequateStorey = "False";
+                    ExitCountAdequateStorey = FALSE;
                 }
                 s.LookupParameter("ExitCountAdequateStorey").Set(ExitCountAdequateStorey);
 
                 // C.4.3 : Check the available egress capacity for this storey
-                s.LookupParameter("EgressCapacityStorey").Set(EgressCapacityStorey.ToString());
-                string EgressCapacityAdequateStorey = "True";
+
+                s.LookupParameter("EgressCapacityStorey").Set(UnitUtils.Convert(EgressCapacityStorey, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                int EgressCapacityAdequateStorey = TRUE;
                 if (EgressCapacityStorey < EgressCapacityRequirementStorey)
                 {
-                    EgressCapacityAdequateStorey = "False";
+                    EgressCapacityAdequateStorey = FALSE;
                 }
                 s.LookupParameter("EgressCapacityAdequateStorey").Set(EgressCapacityAdequateStorey);
 
@@ -545,7 +584,7 @@ namespace Evac4Bim
                 // If, by substracting one of the doors, the residual capacity is still 50% or more of the initial capacity 
                 // Total capacity 
                 double total_w = widths.Sum();
-                string EgressCapacityBalanceStorey = "True";
+                int EgressCapacityBalanceStorey = TRUE;
 
                 if (ExitCountStorey > 1)
                 {
@@ -555,7 +594,7 @@ namespace Evac4Bim
                         double residual_w = total_w - w;
                         if (residual_w < 0.5 * total_w)
                         {
-                            EgressCapacityBalanceStorey = "False";
+                            EgressCapacityBalanceStorey = FALSE;
                             break;
                         }
                     }
@@ -575,13 +614,13 @@ namespace Evac4Bim
             // Loop through storeys to find total occupant load of building
             foreach (Element s in storeys)
             {
-                OccupancyNumberBuilding += Int32.Parse(s.LookupParameter("OccupancyNumberStorey").AsString());
+                OccupancyNumberBuilding += s.LookupParameter("OccupancyNumberStorey").AsInteger();
             }
 
 
 
             // Update total occupant load of building
-            projInfo.LookupParameter("OccupancyNumberBuilding").Set(OccupancyNumberBuilding.ToString());
+            projInfo.LookupParameter("OccupancyNumberBuilding").Set(OccupancyNumberBuilding);
 
 
             // Querry the discharge level 
@@ -603,10 +642,11 @@ namespace Evac4Bim
                 {
                     EgressCapacityRequirementStorey = MIN_EXIT_DOOR_WIDTH;
                 }
-                dischargeStorey.LookupParameter("EgressCapacityRequirementStorey").Set(EgressCapacityRequirementStorey.ToString());
+               
+                dischargeStorey.LookupParameter("EgressCapacityRequirementStorey").Set(UnitUtils.Convert(EgressCapacityRequirementStorey, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
                 // update OccupancyNumber of storey to include all occupants evacuating through discharge floor
-                dischargeStorey.LookupParameter("OccupancyNumberStorey").Set(OccupancyNumberBuilding.ToString());
+                dischargeStorey.LookupParameter("OccupancyNumberStorey").Set(OccupancyNumberBuilding);
 
                 // TaskDialog.Show("Debug", EgressCapacityPerOccupant.ToString() + " * " + OccupancyNumberBuilding.ToString() + " = " + EgressCapacityRequirementStorey.ToString());
 
@@ -616,7 +656,7 @@ namespace Evac4Bim
                 else if (OccupancyNumberBuilding <= 1000 && OccupancyNumberBuilding > 500) { ExitCountRequirementStorey = 3; }
 
                 // else, it stays == 2
-                dischargeStorey.LookupParameter("ExitCountRequirementStorey").Set(ExitCountRequirementStorey.ToString());
+                dischargeStorey.LookupParameter("ExitCountRequirementStorey").Set(ExitCountRequirementStorey);
 
                 // C.4 Loop through exit doors of current level
                 int ExitCountStorey = 0;
@@ -655,21 +695,22 @@ namespace Evac4Bim
                 }
 
                 // C.4.2 : Check the number of exits belonging to this room
-                dischargeStorey.LookupParameter("ExitCountStorey").Set(ExitCountStorey.ToString());
-                string ExitCountAdequateStorey = "True";
+                dischargeStorey.LookupParameter("ExitCountStorey").Set(ExitCountStorey);
+                int ExitCountAdequateStorey = TRUE;
                 if (ExitCountStorey < ExitCountRequirementStorey)
                 {
-                    ExitCountAdequateStorey = "False";
+                    ExitCountAdequateStorey = FALSE;
                 }
 
                 dischargeStorey.LookupParameter("ExitCountAdequateStorey").Set(ExitCountAdequateStorey);
 
                 // C.4.3 : Check the available egress capacity for this level
-                dischargeStorey.LookupParameter("EgressCapacityStorey").Set(EgressCapacityStorey.ToString());
-                string EgressCapacityAdequateStorey = "True";
+                dischargeStorey.LookupParameter("EgressCapacityStorey").Set(UnitUtils.Convert(EgressCapacityStorey, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+                int EgressCapacityAdequateStorey = TRUE;
                 if (EgressCapacityStorey < EgressCapacityRequirementStorey)
                 {
-                    EgressCapacityAdequateStorey = "False";
+                    EgressCapacityAdequateStorey = FALSE;
                 }
                 dischargeStorey.LookupParameter("EgressCapacityAdequateStorey").Set(EgressCapacityAdequateStorey);
 
@@ -678,7 +719,7 @@ namespace Evac4Bim
                 // If, by substracting one of the doors, the residual capacity is still 50% or more of the initial capacity 
                 // Total capacity 
                 double total_w = widths.Sum();
-                string EgressCapacityBalanceStorey = "True";
+                int EgressCapacityBalanceStorey = TRUE;
 
                 if (ExitCountStorey > 1)
                 {
@@ -688,7 +729,7 @@ namespace Evac4Bim
                         double residual_w = total_w - w;
                         if (residual_w < 0.5 * total_w)
                         {
-                            EgressCapacityBalanceStorey = "False";
+                            EgressCapacityBalanceStorey = FALSE;
                             break;
                         }
                     }
@@ -720,16 +761,16 @@ namespace Evac4Bim
             foreach (Element storey in storeys)
             {
 
-                storey.LookupParameter("StairCount").Set("n.a");
-                storey.LookupParameter("StairCapacity").Set("n.a");
-                storey.LookupParameter("StairCountRequirement").Set("n.a");
-                storey.LookupParameter("StairCapacityRequirement").Set("n.a");
-                storey.LookupParameter("StairCountAdequate").Set("n.a");
-                storey.LookupParameter("StairCapacityAdequate").Set("n.a");
-                storey.LookupParameter("StairCapacityBalance").Set("n.a");
+                storey.LookupParameter("StairCount").Set(0);
+                storey.LookupParameter("StairCapacity").Set(0);
+                storey.LookupParameter("StairCountRequirement").Set(0);
+                storey.LookupParameter("StairCapacityRequirement").Set(0);
+                storey.LookupParameter("StairCountAdequate").Set(-1);
+                storey.LookupParameter("StairCapacityAdequate").Set(-1);
+                storey.LookupParameter("StairCapacityBalance").Set(-1);
 
 
-                int OccupancyNumberStorey = Int32.Parse(storey.LookupParameter("OccupancyNumberStorey").AsString());
+                int OccupancyNumberStorey = storey.LookupParameter("OccupancyNumberStorey").AsInteger();
 
                 if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey > 0)
                 {
@@ -760,7 +801,8 @@ namespace Evac4Bim
                     {
                         StairCapacityRequirement = MinRequiredStairCapacity; // avoid too smal values 
                     }
-                    storey.LookupParameter("StairCapacityRequirement").Set(StairCapacityRequirement.ToString());
+                    storey.LookupParameter("StairCapacityRequirement").Set(UnitUtils.Convert(StairCapacityRequirement, UnitTypeId.Millimeters, UnitTypeId.Feet));
+                     
 
                     /// 2.1.2 Check StairCountRequirement
                     int StairCountRequirement = 2;
@@ -768,7 +810,7 @@ namespace Evac4Bim
                     else if (OccupancyNumberStorey <= 1000 && OccupancyNumberStorey > 500) { StairCountRequirement = 3; }
 
                     // else, it stays == 2
-                    storey.LookupParameter("StairCountRequirement").Set(StairCountRequirement.ToString());
+                    storey.LookupParameter("StairCountRequirement").Set(StairCountRequirement);
 
 
                 }
@@ -800,19 +842,19 @@ namespace Evac4Bim
 
                 if (MIN_RISER_HEIGHT <= s_riserHeight && s_riserHeight <= MAX_RISER_HEIGHT)
                 {
-                    s.LookupParameter("RiserHeightAdequate").Set("True");
+                    s.LookupParameter("RiserHeightAdequate").Set(1);
                 }
                 else
                 {
-                    s.LookupParameter("RiserHeightAdequate").Set("False");
+                    s.LookupParameter("RiserHeightAdequate").Set(0);
                 }
                 if (MIN_TREAD_DEPTH <= s_treadDepth)
                 {
-                    s.LookupParameter("TreadLengthAdequate").Set("True");
+                    s.LookupParameter("TreadLengthAdequate").Set(1);
                 }
                 else
                 {
-                    s.LookupParameter("TreadLengthAdequate").Set("False");
+                    s.LookupParameter("TreadLengthAdequate").Set(0);
                 }
 
                 /// 1.4 Find serviced storeys 
@@ -836,24 +878,25 @@ namespace Evac4Bim
                 {
 
                     int StairCount = 0;
-                    int.TryParse(l.LookupParameter("StairCount").AsString(), out StairCount);
+                    StairCount = l.LookupParameter("StairCount").AsInteger();
                     StairCount += 1;
-                    l.LookupParameter("StairCount").Set(StairCount.ToString());
+                    l.LookupParameter("StairCount").Set(StairCount);
 
-                    double StairCapacity = 0;
-                    double.TryParse(l.LookupParameter("StairCapacity").AsString(), out StairCapacity);
+                    double StairCapacity = UnitUtils.ConvertFromInternalUnits(l.LookupParameter("StairCapacity").AsDouble(), UnitTypeId.Millimeters); 
+                    
                     StairCapacity += s_width;
-                    l.LookupParameter("StairCapacity").Set(StairCapacity.ToString());
+
+                    l.LookupParameter("StairCapacity").Set(UnitUtils.Convert(StairCapacity, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
                     /// 2.3 Check StairCapacity is well balanced 
                     // ie No serving stair should have a width less than 50% of the required capacity
-                    double StairCapacityRequirement = 0;
-                    double.TryParse(l.LookupParameter("StairCapacityRequirement").AsString(), out StairCapacityRequirement);
-                    string StairCapacityBalance = "True";
+                    double StairCapacityRequirement = l.LookupParameter("StairCapacityRequirement").AsDouble();
+
+                    int StairCapacityBalance = TRUE;
                     double reducedStairCapacity = StairCapacity - s_width; // if this particular exit was lost ! 
                     if (reducedStairCapacity < 0.5 * StairCapacityRequirement)
                     {
-                        StairCapacityBalance = "False";
+                        StairCapacityBalance = FALSE;
 
                     }
                     l.LookupParameter("StairCapacityBalance").Set(StairCapacityBalance);
@@ -871,36 +914,32 @@ namespace Evac4Bim
 
             foreach (Element storey in storeys)
             {
-                int OccupancyNumberStorey = Int32.Parse(storey.LookupParameter("OccupancyNumberStorey").AsString());
+                int OccupancyNumberStorey = storey.LookupParameter("OccupancyNumberStorey").AsInteger();
 
                 if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey > 0)
                 {
 
                     /// 2.2 Compare with StairCount and StairCapacity => StairCountAdequate and StairCapacityAdequate
 
-                    int StairCountRequirement = 0;
-                    int.TryParse(storey.LookupParameter("StairCountRequirement").AsString(), out StairCountRequirement);
+                    int StairCountRequirement = storey.LookupParameter("StairCountRequirement").AsInteger();
 
-                    double StairCapacityRequirement = 0;
-                    double.TryParse(storey.LookupParameter("StairCapacityRequirement").AsString(), out StairCapacityRequirement);
+                    double StairCapacityRequirement = storey.LookupParameter("StairCapacityRequirement").AsDouble();
 
-                    int StairCount = 0;
-                    int.TryParse(storey.LookupParameter("StairCount").AsString(), out StairCount);
+                    int StairCount = storey.LookupParameter("StairCount").AsInteger();
 
-                    double StairCapacity = 0;
-                    double.TryParse(storey.LookupParameter("StairCapacity").AsString(), out StairCapacity);
-
-                    string StairCapacityAdequate = "True";
+                    double StairCapacity = UnitUtils.ConvertFromInternalUnits(storey.LookupParameter("StairCapacity").AsDouble(), UnitTypeId.Millimeters);
+                    
+                    int StairCapacityAdequate = TRUE;
                     if (StairCapacity < StairCapacityRequirement)
                     {
-                        StairCapacityAdequate = "False";
+                        StairCapacityAdequate = FALSE;
                     }
                     storey.LookupParameter("StairCapacityAdequate").Set(StairCapacityAdequate);
 
-                    string StairCountAdequate = "True";
+                    int StairCountAdequate = TRUE;
                     if (StairCount < StairCountRequirement)
                     {
-                        StairCountAdequate = "False";
+                        StairCountAdequate = FALSE;
                     }
                     storey.LookupParameter("StairCountAdequate").Set(StairCountAdequate);
 
@@ -925,29 +964,28 @@ namespace Evac4Bim
 
 
             /// 3. Ensure capacity is maintained : 
-            string StairCapacityContinuity = "True";
-            string StairCountContinuity = "True";
+            int StairCapacityContinuity = TRUE;
+            int StairCountContinuity = TRUE;
             /// 3.1 Loop storeys again ! 
             foreach (Element storey in storeys)
             {
-                int OccupancyNumberStorey = Int32.Parse(storey.LookupParameter("OccupancyNumberStorey").AsString());
+                int OccupancyNumberStorey = storey.LookupParameter("OccupancyNumberStorey").AsInteger();
 
                 if (storey.LookupParameter("EntranceLevel").AsInteger() != 1 && OccupancyNumberStorey > 0)
                 {
                     /// 3.1.1 For each storey => StairCount and StairCapacity ==  StairCountRequirementOverall and StairCapacityRequirementOverall
-                    int StairCount = 0;
-                    int.TryParse(storey.LookupParameter("StairCount").AsString(), out StairCount);
+                    int StairCount = storey.LookupParameter("StairCount").AsInteger();
 
-                    double StairCapacity = 0;
-                    double.TryParse(storey.LookupParameter("StairCapacity").AsString(), out StairCapacity);
+                    double StairCapacity = UnitUtils.ConvertFromInternalUnits(storey.LookupParameter("StairCapacity").AsDouble(), UnitTypeId.Millimeters);
+
 
                     if (StairCapacity != StairCapacityRequirementOverall)
                     {
-                        StairCapacityContinuity = "False";
+                        StairCapacityContinuity = FALSE;
                     }
                     if (StairCount != StairCountRequirementOverall)
                     {
-                        StairCountContinuity = "False";
+                        StairCountContinuity = FALSE;
                     }
 
 
@@ -960,8 +998,9 @@ namespace Evac4Bim
             // update proj info 
             doc.ProjectInformation.LookupParameter("StairCapacityContinuity").Set(StairCapacityContinuity);
             doc.ProjectInformation.LookupParameter("StairCountContinuity").Set(StairCountContinuity);
-            doc.ProjectInformation.LookupParameter("StairCountRequirementOverall").Set(StairCountRequirementOverall.ToString());
-            doc.ProjectInformation.LookupParameter("StairCapacityRequirementOverall").Set(StairCapacityRequirementOverall.ToString());
+            doc.ProjectInformation.LookupParameter("StairCountRequirementOverall").Set(StairCountRequirementOverall);
+             
+            doc.ProjectInformation.LookupParameter("StairCapacityRequirementOverall").Set(UnitUtils.Convert(StairCapacityRequirementOverall, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
 
         }
@@ -976,13 +1015,14 @@ namespace Evac4Bim
                 // make text 
                 string msg = "";
                 string temp = "n.a";
+                int tmp = -1;
                 if (1 == 1)
                 {
                     msg += "< Summary of Prescriptions Check For Storey \""+ l.Name + "\" >";
                     msg += "\n\n\n";                    
                     ///
                     msg += "Occupants Served : ";
-                    msg += l.LookupParameter("OccupancyNumberStorey").AsString();
+                    msg += l.LookupParameter("OccupancyNumberStorey").AsInteger().ToString();
                     msg += "\n\n";
                     ///
                     msg += "Discharge Level : ";
@@ -998,12 +1038,12 @@ namespace Evac4Bim
                     msg += "\n\n";
                     ///
                     msg += "Egress Capacity : ";
-                    temp = l.LookupParameter("EgressCapacityAdequateStorey").AsString();
-                    if (temp == "True")
+                    tmp = l.LookupParameter("EgressCapacityAdequateStorey").AsInteger();
+                    if (tmp == TRUE)
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (tmp == FALSE)
                     {
                         msg += "Fail \u274C";
                     }
@@ -1013,14 +1053,15 @@ namespace Evac4Bim
                     }
                     temp = "n.a";
                     msg += "\n\n";
+                    tmp = -1;
                     ///
                     msg += "Exit Count : ";
-                    temp = l.LookupParameter("ExitCountAdequateStorey").AsString();
-                    if (temp == "True")
+                    tmp = l.LookupParameter("ExitCountAdequateStorey").AsInteger();
+                    if (tmp == TRUE)
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (tmp == FALSE)
                     {
                         msg += "Fail \u274C";
                     }
@@ -1030,14 +1071,15 @@ namespace Evac4Bim
                     }
                     temp = "n.a";
                     msg += "\n\n";
+                    tmp = -1;
                     ///
                     msg += "Egress Capacity Balance : ";
-                    temp = l.LookupParameter("EgressCapacityBalanceStorey").AsString();
-                    if (temp == "True")
+                    tmp = l.LookupParameter("EgressCapacityBalanceStorey").AsInteger();
+                    if (tmp == TRUE)
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (tmp == FALSE)
                     {
                         msg += "Fail \u274C";
                     }
@@ -1047,14 +1089,15 @@ namespace Evac4Bim
                     }
                     temp = "n.a";
                     msg += "\n\n";
+                    tmp = -1;
                     ///
                     msg += "Stair Capacity : ";
-                    temp = l.LookupParameter("StairCapacityAdequate").AsString();
-                    if (temp == "True")
+                    temp = l.LookupParameter("StairCapacityAdequate").AsInteger().ToString();
+                    if (temp == "1")
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (temp == "0")
                     {
                         msg += "Fail \u274C";
                     }
@@ -1066,12 +1109,12 @@ namespace Evac4Bim
                     msg += "\n\n";
                     ///
                     msg += "Stair Count : ";
-                    temp = l.LookupParameter("StairCountAdequate").AsString();
-                    if (temp == "True")
+                    temp = l.LookupParameter("StairCountAdequate").AsInteger().ToString();
+                    if (temp == "1")
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (temp == "0")
                     {
                         msg += "Fail \u274C";
                     }
@@ -1082,12 +1125,12 @@ namespace Evac4Bim
                     temp = "n.a";
                     msg += "\n\n";
                     msg += "Stair Capacity Balance : ";
-                    temp = l.LookupParameter("StairCapacityBalance").AsString();
-                    if (temp == "True")
+                    temp = l.LookupParameter("StairCapacityBalance").AsInteger().ToString();
+                    if (temp == "1")
                     {
                         msg += "Pass \u2714";
                     }
-                    else if (temp == "False")
+                    else if (temp == "0")
                     {
                         msg += "Fail \u274C";
                     }
@@ -1193,6 +1236,7 @@ namespace Evac4Bim
                 // make text 
                 string msg = "";
                 string temp = "n.a";
+                int tmp = -1;
                 if (1 == 1)
                 {
                     msg += "< Summary of Prescriptions Check For the Building >";
@@ -1207,7 +1251,7 @@ namespace Evac4Bim
                     msg += "\n\n";
                     ///
                     msg += "Total Occupants : ";
-                    msg += projInfo.LookupParameter("OccupancyNumberBuilding").AsString();
+                    msg += projInfo.LookupParameter("OccupancyNumberBuilding").AsInteger().ToString();
                     msg += "\n\n";
                     ///
                     msg += "Sprinkler System : ";
@@ -1243,12 +1287,12 @@ namespace Evac4Bim
                     msg += "\n\n";
                     ///
                     msg += "Sprinklers Required : ";
-                    temp = projInfo.LookupParameter("SprinklerProtectionRequirement").AsString();
-                    if (temp == "True")
+                    tmp = projInfo.LookupParameter("SprinklerProtectionRequirement").AsInteger();
+                    if (tmp == 1)
                     {
                         msg += "Yes";
                     }
-                    else if (temp == "False")
+                    else if (tmp == 0)
                     {
                         msg += "No";
                     }
@@ -1258,6 +1302,7 @@ namespace Evac4Bim
                     }
                     temp = "n.a";
                     msg += "\n\n";
+                    tmp = -1;
                 }
 
 
@@ -1375,9 +1420,12 @@ namespace Evac4Bim
                         continue;
                     }
                     View v = doc.GetElement(viewId) as View;
+                    //v.SetElementOverrides(d.Id, default_ogs);
+
                     // check if something is wrong with that door ! 
-                    if (d.LookupParameter("DimensionAdequate").AsString() == "False")
+                    if (d.LookupParameter("DimensionAdequate").AsInteger() == FALSE)
                     {
+                      //  TaskDialog.Show("Debug", d.LookupParameter("DimensionAdequate").AsInteger().ToString());
                         v.SetElementOverrides(d.Id, ogs_error);
                     }
                     // if its fine AND it is a dischargeExit => highlight it
@@ -1476,7 +1524,7 @@ namespace Evac4Bim
                         v2.SetElementOverrides(stair.Id, default_ogs);
                     }
 
-                    else if (stair.LookupParameter("RiserHeightAdequate").AsString() == "True" && stair.LookupParameter("TreadLengthAdequate").AsString() == "True")
+                    else if (stair.LookupParameter("RiserHeightAdequate").AsInteger().ToString() == "1" && stair.LookupParameter("TreadLengthAdequate").AsInteger().ToString() == "1")
                     {
                         View v1 = doc.GetElement(viewIdTop) as View;
                         v1.SetElementOverrides(stair.Id, ogs);

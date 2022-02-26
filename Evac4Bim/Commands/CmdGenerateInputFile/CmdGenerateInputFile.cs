@@ -254,9 +254,9 @@ namespace Evac4Bim
                                 ElementId doorId = new ElementId(dooeEleId);
 
                                 Element ele = doc.GetElement(doorId);
-                                string isDoorClosed = ele.LookupParameter("isAccessible").AsString();
+                                int isAccessible = ele.LookupParameter("isAccessible").AsInteger();
 
-                                if (isDoorClosed == "False" || isDoorClosed == "false")
+                                if (isAccessible == 0)
                                 {
                                     // add to the list of events to be generated
                                     closedDoorsIds.Add(key);
@@ -314,7 +314,7 @@ namespace Evac4Bim
                                 ElementId doorId = new ElementId(doorEleId);
 
                                 Element ele = doc.GetElement(doorId);
-                                string doorflowrate = ele.LookupParameter("RequiredDoorFlowrate").AsString();
+                                string doorflowrate = ele.LookupParameter("RequiredDoorFlowrate").AsDouble().ToString();
 
 
                                 //TaskDialog.Show("Debug", lines[k]);

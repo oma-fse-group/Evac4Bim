@@ -114,17 +114,17 @@ namespace Evac4Bim
                 {
                     Element elem = doc.GetElement(id);
                   
-                    if (elem.LookupParameter("AreaPerOccupantSpace")== null || elem.LookupParameter("AreaPerOccupantSpace") == null || elem.LookupParameter("Category") == null )
+                    if (elem.LookupParameter("OccupancyNumberLimit") == null || elem.LookupParameter("AreaPerOccupantSpace") == null || elem.LookupParameter("Category") == null )
                     {
                         TaskDialog.Show("Error", "Some project parameters appear to be missing. Try initialising the project first !");
 
                         tx.RollBack();
                         return Result.Failed;
                     }
-                    
-                    elem.LookupParameter("AreaPerOccupantSpace").Set(factors[f.selectedFunctionIndex].ToString());
-                    
-                    //TaskDialog.Show("Debug", items[f.selectedFunctionIndex]);
+
+                    double AreaPerOccupantSpace = double.Parse(factors[f.selectedFunctionIndex].ToString());
+                    // convert user-defined offset value to feet from inches prior to setting
+                    elem.LookupParameter("AreaPerOccupantSpace").Set(UnitUtils.Convert(AreaPerOccupantSpace, UnitTypeId.SquareMeters, UnitTypeId.SquareFeet));
                     elem.LookupParameter("Category").Set(items[f.selectedFunctionIndex].ToString());
 
            
@@ -132,9 +132,21 @@ namespace Evac4Bim
                     double area = UnitUtils.ConvertFromInternalUnits(elem.LookupParameter("Area").AsDouble(), UnitTypeId.SquareMeters);
 
                     // round up 
-                    double load = Math.Ceiling(area / Double.Parse(factors[f.selectedFunctionIndex]));
-                   
-                    elem.LookupParameter("OccupancyNumberLimit").Set(load.ToString());
+                    double OccupancyNumberLimit;
+                    if (AreaPerOccupantSpace != 0)
+                    {
+                        OccupancyNumberLimit = Math.Ceiling(area / AreaPerOccupantSpace);
+                    }
+                    else
+                    {
+                        OccupancyNumberLimit = 0;
+                    }
+                    
+
+                   // TaskDialog.Show("Debug", area.ToString() + "/" + AreaPerOccupantSpace.ToString() + " = " + OccupancyNumberLimit.ToString());
+
+
+                    elem.LookupParameter("OccupancyNumberLimit").Set(OccupancyNumberLimit);
 
 
                 }

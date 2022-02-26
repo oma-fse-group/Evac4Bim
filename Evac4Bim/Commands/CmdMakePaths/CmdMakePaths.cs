@@ -180,7 +180,10 @@ namespace Evac4Bim
                                     if (pth != null)
                                     {
                                         double distance = Math.Round(UnitUtils.ConvertFromInternalUnits(pth.LookupParameter("Length").AsDouble(), UnitTypeId.Millimeters), 0);
-                                        r.LookupParameter("EgressPathTravelDistance").Set(distance.ToString());
+
+                                        r.LookupParameter("EgressPathTravelDistance").Set(UnitUtils.Convert(distance, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+
                                     }
                                    
 
