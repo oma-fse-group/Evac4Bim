@@ -216,7 +216,7 @@ namespace Evac4Bim
             /// </summary>
             /// <param name="rooms"></param>
             /// <param name="roomExitList"></param>
-            public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList, out int result)
+        public void ibcCheckRooms(List<Element> rooms, List<Element> roomExitList, out int result)
         {
 
             //Loop through rooms 

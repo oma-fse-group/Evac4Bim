@@ -183,6 +183,38 @@ namespace Evac4Bim
 
                                         r.LookupParameter("EgressPathTravelDistance").Set(UnitUtils.Convert(distance, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
+                                        List<Curve> pthCurves = pth.GetCurves().ToList();
+                                        List<string> pthCurvesStr = new List<string>();
+                                        string pthPoints = "";
+                                        foreach (Curve c in pthCurves)
+                                        {
+                                            XYZ p0 = c.GetEndPoint(0);
+                                            string p0str = IBCCheckUtils.XYZToString(p0);
+                                            XYZ p1 = c.GetEndPoint(1);
+                                            string p1str = IBCCheckUtils.XYZToString(p1);
+                                            // avoid duplicates
+                                            if(!pthCurvesStr.Contains(p0str))
+                                            {
+                                                pthCurvesStr.Add(p0str);
+                                            }
+                                            if (!pthCurvesStr.Contains(p1str))
+                                            {
+                                                pthCurvesStr.Add(p1str);
+                                            }
+
+
+                                        }
+
+                                        foreach (string st in pthCurvesStr)
+                                        {
+                                            pthPoints += "(" + st + ")"+",";
+                                           // TaskDialog.Show("Debug", st);
+                                        }
+                                        pthPoints = pthPoints.Remove(pthPoints.Count() - 1);
+                                       // TaskDialog.Show("Debug", pthPoints);
+                                        //Write into  model
+
+                                        r.LookupParameter("EgressPathTravelXYZ").Set(pthPoints);
 
                                     }
                                    
@@ -363,7 +395,7 @@ namespace Evac4Bim
         // output the point's three coordinates
         public static string XYZToString(XYZ point)
         {
-            return point.X + ";" + point.Y + ";" + point.Z;
+            return Math.Round(point.X,2) + ";" + Math.Round(point.Y, 2) + ";" + Math.Round(point.Z, 2);
         }
         public static XYZ StringtoXYZ(string point)
         {
