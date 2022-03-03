@@ -52,7 +52,7 @@ namespace Evac4Bim
             this.doc = uidoc.Document;
             var app = commandData.Application.Application;
             this.projInfo = doc.ProjectInformation as Element;
-
+            
 
 
             // Init project parameters 
@@ -113,6 +113,8 @@ namespace Evac4Bim
 
            IBCCheckUtils.unpinStairs(multiStoreyStairs, this.doc);
 
+
+
             // List of stairs 
             List<Element> allStairs = new FilteredElementCollector(doc).WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_Stairs).ToList();
 
@@ -122,8 +124,9 @@ namespace Evac4Bim
 
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
-            /// 0. Checking door sizes 
+            /// 0. Checking door sizes and linking stairs
             ibcCheckDoorExits(roomExitList);
+            ibcBuildVerticalTravelRoute(stairs,rooms);
 
             /// 1 . Checking room egress capacity + occupant load 
            int result = 0; 
@@ -147,11 +150,18 @@ namespace Evac4Bim
            ibcCheckStairSystem(stairs, storeys);
 
             /// 5. Display/Highlight results 
-            makeTextNotes(storeys,rooms);
+            highlightRooms(rooms);
+            makeTextNotes(storeys,rooms, "IBC Room Function"); // Revit refuses to place a legend on upper storeys 
             makeTextNotesBuildingSummary(storeys, rooms);
             highlightDoors(storeys, doorsList.ToList());
             highlightTravelPaths(travelPaths);
             highlightStairs(allStairs);
+
+
+ 
+            
+
+            
 
             // Confirmation
             TaskDialog.Show("Result", "IBC prescription check completed successfully !");
@@ -252,8 +262,12 @@ namespace Evac4Bim
                     }
                     r.LookupParameter("EgressCapacityRequirement").Set(UnitUtils.Convert(EgressCapacityRequirement, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
-                    double EgressPathTravelDistance = UnitUtils.ConvertFromInternalUnits(r.LookupParameter("EgressPathTravelDistance").AsDouble(), UnitTypeId.Millimeters);
+                   
+                    double EgressPathTravelDistanceHorizontal = UnitUtils.ConvertFromInternalUnits(r.LookupParameter("EgressPathTravelDistanceHorizontal").AsDouble(), UnitTypeId.Millimeters);
+                    double EgressPathTravelDistanceVertical = UnitUtils.ConvertFromInternalUnits(r.LookupParameter("EgressPathTravelDistanceVertical").AsDouble(), UnitTypeId.Millimeters);
 
+                    double EgressPathTravelDistance = EgressPathTravelDistanceHorizontal + EgressPathTravelDistanceVertical;
+                    r.LookupParameter("EgressPathTravelDistance").Set(UnitUtils.Convert(EgressPathTravelDistance, UnitTypeId.Millimeters, UnitTypeId.Feet));
 
 
                     // C.3 Compute the requried number of exits 
@@ -433,7 +447,6 @@ namespace Evac4Bim
 
                     // C.8 chck travel distance             
 
-                    // EgressPathTravelDistance = Double.Parse(r.LookupParameter("EgressPathTravelDistance").AsString()); // in mm ! 
                     int EgressPathTravelDistanceExcess = FALSE;
                     if (EgressPathTravelDistance > EgressPathTravelDistanceLimit || EgressPathTravelDistance <= 0)
                     {
@@ -1005,9 +1018,20 @@ namespace Evac4Bim
 
         }
 
-        public void makeTextNotes(List<Element> storeys , List<Element>rooms)
+        public void makeTextNotes(List<Element> storeys , List<Element>rooms, string schemeName)
         {
-             foreach (Element s in storeys)
+            // Find color schemes in the document
+            List<Element> schemaList = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_ColorFillSchema).WhereElementIsNotElementType().ToList();
+            List<ColorFillScheme> schema = schemaList.Cast<ColorFillScheme>().Where(scheme => scheme.Title == schemeName).ToList();
+            ElementId schId = null;
+            if (schema.Count>0)
+            {
+                schId = schema.First().Id;
+            }
+            List<Element> legendList = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_ColorFillLegends).WhereElementIsNotElementType().ToList();
+
+
+            foreach (Element s in storeys)
             {
                 // get storey 
                 Level l = s as Level;
@@ -1146,7 +1170,7 @@ namespace Evac4Bim
                 string textNoteId = l.LookupParameter("TextNoteStoreyID").AsString();
                 TextNote note = null;
                 int makeNew = 1; // by defautlt - make a new note
-
+                ElementId viewId = l.FindAssociatedPlanViewId();
 
                 if (textNoteId != "" && textNoteId != null)
                 {
@@ -1172,7 +1196,6 @@ namespace Evac4Bim
                 {
                    
                     // get the view associated with the floor s an id
-                    ElementId viewId = l.FindAssociatedPlanViewId();
                     if (viewId == ElementId.InvalidElementId)
                     {
                         // do something
@@ -1211,6 +1234,58 @@ namespace Evac4Bim
 
                 }
 
+
+                // color fill legend
+                
+
+                if (schId != null)
+                {
+                    // check if a legend is already defined 
+
+                    List<Element> existingLegends =  legendList.Where(leg => leg.OwnerViewId == viewId).ToList();
+                    if (existingLegends.Count == 0)
+                    {
+                      //  TaskDialog.Show("Debug", schId.ToString());
+
+                        // define origin 
+                        XYZ origin = null;
+
+                        // cannot access location/coordinates of floor or floor planes or view so,
+                        // find a random room and place the legend on it - hoping the user will notice it :) 
+                        List<Element> rList = rooms.Where(room => room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsElementId() == l.Id).ToList();
+                        if (rList.Count() > 0)
+                        {
+                            Element r = rList.First();
+                            origin = (r.Location as LocationPoint).Point;
+                            
+                           origin = new XYZ (origin.X, origin.Y,l.Elevation); // ensure its on the plane
+                            try
+                            {
+
+                                View v = doc.GetElement(viewId) as View;
+                                
+                                v.SetColorFillSchemeId(new ElementId(BuiltInCategory.OST_Rooms), schId);
+
+                                ColorFillLegend legend = ColorFillLegend.Create(doc, viewId, new ElementId(BuiltInCategory.OST_Rooms), origin);
+
+
+                            }
+                            catch
+                            {
+
+
+
+                            }
+                        }
+                        
+
+                       
+                    }
+
+                   
+                    
+                }
+                
 
 
             }
@@ -1550,10 +1625,358 @@ namespace Evac4Bim
 
         }
 
+        public void highlightRooms (List <Element> rooms)
+        {
+            Color green = new Color((byte)0, (byte)200, (byte)0);
+            Color red = new Color((byte)200, (byte)0, (byte)0);
+
+
+
+            List<string> requiredSchema = new List<string>();
+            requiredSchema.Add("IBC Room Function");
+            requiredSchema.Add("IBC Egress Capacity Adequate");
+            requiredSchema.Add("IBC Exit Count Adequate");
+            requiredSchema.Add("IBC Egress Path Travel Distance Excess");
+            requiredSchema.Add("IBC Egress Capacity Balance");
+            requiredSchema.Add("IBC Occupancy Number Excess");
+            requiredSchema.Add("IBC Egress Components Placement");
+
+            List<string> missingSchema = new List<string>();
+            List<string> existingSchema = new List<string>();
+
+            
+            // Find color schemes in the document
+            List<Element> schemaList = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_ColorFillSchema).WhereElementIsNotElementType().ToList();
+            int roomCatIndex = (int)BuiltInCategory.OST_Rooms;
+            List<ColorFillScheme> schema = schemaList.Cast<ColorFillScheme>().Where(scheme => scheme.CategoryId.IntegerValue == roomCatIndex).ToList();
+
+            // Check if the schemes are already defined 
+            foreach (ColorFillScheme scheme in schema)
+            {
+                existingSchema.Add(scheme.Name);
+                //TaskDialog.Show("Existing", scheme.Name);
+
+                //ColorFillScheme scheme = ele as ColorFillScheme;
+                //TaskDialog.Show("Debug", scheme.Title);
+            }
+
+            foreach (string s in requiredSchema)
+            {
+                // if the scheme is required but was not found, create it 
+                if (!existingSchema.Contains(s))
+                {
+                    missingSchema.Add(s);
+                }
+            }
+
+
+            // Else create new ones by duplicating a pre existing room scheme
+            
+
+            if (missingSchema.Count>0 && schema.Count>0 && rooms.Count>0)
+            {
+               foreach (string name in missingSchema)
+                {
+
+                    //TaskDialog.Show("Debyg", name);
+                    // find the scheme to duplicate
+                    ColorFillScheme sch = schema.First();
+                    ColorFillScheme newSch = doc.GetElement(sch.Duplicate(name)) as ColorFillScheme;
+                    newSch.Title = name;
+                   
+
+                    // edit colors and category
+                    if (name == "IBC Room Function")
+                    {                        
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("Category").Id;
+                    }
+                   else if (name == "IBC Egress Capacity Adequate")
+                    {
+                        
+                        // all existing entries are removed 
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("EgressCapacityAdequate").Id;
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, green);
+                        colorsDict.Add(0, red);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Pass");
+                        evalDict.Add(0, "Fail");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+
+                    }
+                    else if (name == "IBC Exit Count Adequate")
+                    {
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("ExitCountAdequate").Id;
+
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, green);
+                        colorsDict.Add(0, red);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Pass");
+                        evalDict.Add(0, "Fail");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+                    }
+                    else if (name == "IBC Egress Path Travel Distance Excess")
+                    {
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("EgressPathTravelDistanceExcess").Id;
+
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, red);
+                        colorsDict.Add(0, green);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Fail");
+                        evalDict.Add(0, "Pass");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+                    }
+                    else if (name == "IBC Egress Capacity Balance")
+                    {
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("EgressCapacityBalance").Id;
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, green);
+                        colorsDict.Add(0, red);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Pass");
+                        evalDict.Add(0, "Fail");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+                    }
+                    else if (name == "IBC Occupancy Number Excess")
+                    {
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("OccupancyNumberExcess").Id;
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, red);
+                        colorsDict.Add(0, green);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Fail");
+                        evalDict.Add(0, "Pass");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+                    }
+                    else if (name == "IBC Egress Components Placement")
+                    {
+                        newSch.ParameterDefinition = rooms.First().LookupParameter("EgressComponentsPlacement").Id;
+                        // set colors 
+                        IDictionary<int, Color> colorsDict = new Dictionary<int, Color>();
+                        colorsDict.Add(1, green);
+                        colorsDict.Add(0, red);
+                        IDictionary<int, string> evalDict = new Dictionary<int, string>();
+                        evalDict.Add(1, "Pass");
+                        evalDict.Add(0, "Fail");
+
+                        IBCCheckUtils.createSchemeEntries(colorsDict, evalDict, newSch);
+                    }
+                                       
+
+                }
+              
+
+            }
+            else if (schema.Count == 0 || rooms.Count == 0)
+            {
+                // error - do something
+                TaskDialog.Show("Error", "Could not create the color fill schema.");
+            }
+ 
+
+        }
+
+        /// <summary>
+        /// Compute the total vertical length from a stair to a discharge door 
+        /// Also update room's EgressPathTravelDistanceVertical
+        /// </summary>
+        /// <param name="stairs"></param>
+        public void ibcBuildVerticalTravelRoute(List<Element> stairs, List<Element> rooms)
+        {
+            foreach (Element e in stairs)
+            {
+                Stairs s = e as Stairs;
+
+                // Compute the vertical length 
+
+                // double VerticalLength = UnitUtils.ConvertFromInternalUnits(s.LookupParameter("VerticalLength").AsDouble(), UnitTypeId.Millimeters);
+
+
+
+                double s_riserHeight = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualRiserHeight, UnitTypeId.Millimeters), 1);
+                double s_treadDepth = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualTreadDepth, UnitTypeId.Millimeters), 1);
+                double VerticalLength = Math.Sqrt((s_treadDepth * s_treadDepth + s_riserHeight * s_riserHeight)) * s.ActualRisersNumber;
+
+                // write 
+                s.LookupParameter("VerticalLength").Set(UnitUtils.Convert(VerticalLength, UnitTypeId.Millimeters, UnitTypeId.Feet));
+
+
+            }
+
+
+            foreach (Element e in stairs)
+            {
+                Stairs s = e as Stairs;
+                List<string> componentsList = new List<string>();
+
+                // find the succession of linked elements - from stair to stair - until reaching a discharge exit door
+                 string nextComponent = s.LookupParameter("IfcName").AsString(); // current stair ! 
+                
+                string msg = "";
+                if (nextComponent != "" && nextComponent != null)
+                {
+                    string next  = nextComponent; // initialize
+                    do
+                    {
+                        //  TaskDialog.Show("debug", "fff");
+                        componentsList.Add(next);
+                        string temp = next;
+                        msg += next + "=>";
+                        next = "";
+
+                        int eleIdInt = -1;
+                        int.TryParse(temp.Split('_').Last(), out eleIdInt);
+                        if (eleIdInt != -1)
+                        {
+                            // access element via id 
+                            Element ele = doc.GetElement(new ElementId(eleIdInt));
+                            if (ele != null)
+                            {
+                                // element found 
+                                // it was previously registered
+                                // ensure its a stair 
+                                if (ele.GetType().Name == "Stairs")
+                                {
+                                    // access its LinkedComponent attribute
+                                    string LinkedComponent = ele.LookupParameter("LinkedComponent").AsString();
+                                    if (LinkedComponent != "" && LinkedComponent != null)
+                                    {
+                                        next = LinkedComponent;
+                                    }
+
+                                 }
+                            }
+                        }
+
+
+
+                    } while (next != string.Empty);
+
+                }
+
+                // TaskDialog.Show("DeBUG", msg);
+
+                // compute the total vertical length 
+                double CombinedVerticalLength = 0;
+                foreach (string str in componentsList)
+                {
+                    int eleIdInt = -1;
+                    int.TryParse(str.Split('_').Last(), out eleIdInt);
+                    if (eleIdInt != -1)
+                    {
+                        // access element via id 
+                        Element ele = doc.GetElement(new ElementId(eleIdInt));
+                        if (ele != null)
+                        {
+                            if (ele.GetType().Name == "Stairs")
+                            {
+                                double VerticalLength = UnitUtils.ConvertFromInternalUnits(ele.LookupParameter("VerticalLength").AsDouble(), UnitTypeId.Millimeters);
+                                CombinedVerticalLength += VerticalLength;
+                            }
+                        }
+                    }
+
+                }
+
+                s.LookupParameter("CombinedVerticalLength").Set(UnitUtils.Convert(CombinedVerticalLength, UnitTypeId.Millimeters, UnitTypeId.Feet));
+            }
+
+            foreach (Element e in rooms)
+            {
+                // find if a staircase was assigned 
+                string AssignedStaircase = e.LookupParameter("AssignedStaircase").AsString();
+                double EgressPathTravelDistanceVertical = 0;
+
+                if (AssignedStaircase != "" && AssignedStaircase != null)
+                {
+                    // find the staircase and retrieve its CombinedVerticalLength
+                    int eleIdInt = -1;
+                    int.TryParse(AssignedStaircase.Split('_').Last(), out eleIdInt);
+                    if (eleIdInt != -1)
+                    {
+                        // access element via id 
+                        Element ele = doc.GetElement(new ElementId(eleIdInt));
+                        if (ele != null)
+                        {
+                            if (ele.GetType().Name == "Stairs")
+                            {
+                                double CombinedVerticalLength = UnitUtils.ConvertFromInternalUnits(ele.LookupParameter("CombinedVerticalLength").AsDouble(), UnitTypeId.Millimeters);
+                                EgressPathTravelDistanceVertical = CombinedVerticalLength;
+                            }
+                        }
+                    }
+
+
+                }
+                else if (AssignedStaircase == "")
+                {
+                    EgressPathTravelDistanceVertical = 0;
+                }
+
+
+                // write to revit model
+                e.LookupParameter("EgressPathTravelDistanceVertical").Set(UnitUtils.Convert(EgressPathTravelDistanceVertical, UnitTypeId.Millimeters, UnitTypeId.Feet));
+            }
+
+
+        }
+
+
     }
 
         public class IBCCheckUtils
     {
+        /// <summary>
+        /// Storagetype for entries must be integer (true for the boolean parameters !)
+        /// Changing color does not apply for pre-filled entries which are created by revit when setting the ParameterDefinition
+        /// </summary>
+        /// <param name="colorsDict"></param>
+        /// <param name="evalDict"></param>
+        /// <param name="newSch"></param>
+        public static void createSchemeEntries (IDictionary<int, Color> colorsDict , IDictionary<int, string> evalDict, ColorFillScheme newSch)
+        {
+            
+
+            foreach (int key in colorsDict.Keys)
+            {
+                ColorFillSchemeEntry entry = new ColorFillSchemeEntry(StorageType.Integer);
+                entry.SetIntegerValue(key);
+                entry.Color = colorsDict[key];
+                entry.Caption = evalDict[key];
+
+                if (newSch.CanUpdateEntry(entry)) // means this entry exists
+                {
+                    newSch.UpdateEntry(entry);
+                }
+                else
+                {
+                    try
+                    {
+                        newSch.AddEntry(entry);
+                    }
+                    catch
+                    {
+                        newSch.UpdateEntry(entry);
+                    }
+                    
+                }
+
+
+            }
+        }
+
         /// <summary>
         /// Return the diagonal of a room = furthest distance between two rooms [millimeters]
         /// </summary>

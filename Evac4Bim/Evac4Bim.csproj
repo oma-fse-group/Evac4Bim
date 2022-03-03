@@ -36,11 +36,11 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2021\RevitAPIUI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -65,6 +65,10 @@
     <PostBuildEvent>xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
 xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
 xcopy "$(TargetDir)\Newtonsoft.Json.xml" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
-xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\icons\" /F /R /Y /I</PostBuildEvent>
+xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\icons\" /F /R /Y /I
+xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)\Newtonsoft.Json.xml" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\icons\" /F /R /Y /I</PostBuildEvent>
   </PropertyGroup>
 </Project>

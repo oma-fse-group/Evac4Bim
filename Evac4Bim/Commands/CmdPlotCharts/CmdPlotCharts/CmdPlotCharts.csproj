@@ -32,11 +32,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2021\RevitAPIUI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ScottPlot, Version=4.1.29.0, Culture=neutral, PublicKeyToken=86698dc10387c39e, processorArchitecture=MSIL">
@@ -87,6 +87,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
   </PropertyGroup>
 </Project>

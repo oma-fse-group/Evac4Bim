@@ -55,10 +55,10 @@ namespace Evac4Bim
             // create push buttons for split button drop down
             string assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdImportParameter.dll";
 
-            PushButtonData bResultsOne = new PushButtonData("ImportParameters", "Import Pathfinder\u2122\nResults", assembly, "Evac4Bim.ImportParameters");
+            PushButtonData bResultsOne = new PushButtonData("ImportParameters", "Import\nResults", assembly, "Evac4Bim.ImportParameters");
             bResultsOne.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\ImportParameters.png"));
 
-            PushButtonData bResultsTwo = new PushButtonData("ImportParametersMultipleRuns", "Import Pathfinder\u2122\nResults (Multi)", assembly, "Evac4Bim.ImportParametersMultipleRuns");
+            PushButtonData bResultsTwo = new PushButtonData("ImportParametersMultipleRuns", "Import\nResults (Multi)", assembly, "Evac4Bim.ImportParametersMultipleRuns");
             bResultsTwo.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\ImportParameters.png"));
                         
 
@@ -181,11 +181,20 @@ namespace Evac4Bim
             PushButtonData bPathTwo = new PushButtonData("CmdMakePaths", "Draw Travel\npaths", path2, "Evac4Bim.CmdMakePaths");
             bPathTwo.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdMakePaths.png"));
 
+            PushButtonData bPathThree = new PushButtonData("CmdSelectPreferredStair", "Assign\nStairway", path2, "Evac4Bim.CmdSelectPreferredStair");
+            bPathThree.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdSelectPreferredStair.png"));
+
+
+            PushButtonData bPathFour = new PushButtonData("CmdAssignLinkedComponent", "Link\nStairways", path2, "Evac4Bim.CmdAssignLinkedComponent");
+            bPathFour.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdAssignLinkedComponent.png"));
+
 
             SplitButtonData spltPath = new SplitButtonData("spltPath", "Paths");
             SplitButton spltPathB = panel4.AddItem(spltPath) as SplitButton;
             spltPathB.AddPushButton(bPathTwo);
             spltPathB.AddPushButton(bPathOne);
+            spltPathB.AddPushButton(bPathThree);
+            spltPathB.AddPushButton(bPathFour);
 
 
 
