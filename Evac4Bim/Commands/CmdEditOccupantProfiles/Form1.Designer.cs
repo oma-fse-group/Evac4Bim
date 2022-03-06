@@ -73,7 +73,7 @@ namespace CmdEditOccupantProfiles
             // textBoxName
             // 
             this.textBoxName.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxName.Location = new System.Drawing.Point(190, 145);
+            this.textBoxName.Location = new System.Drawing.Point(212, 145);
             this.textBoxName.Name = "textBoxName";
             this.textBoxName.Size = new System.Drawing.Size(293, 30);
             this.textBoxName.TabIndex = 2;
@@ -81,7 +81,7 @@ namespace CmdEditOccupantProfiles
             // textBoxSpeed
             // 
             this.textBoxSpeed.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxSpeed.Location = new System.Drawing.Point(190, 200);
+            this.textBoxSpeed.Location = new System.Drawing.Point(212, 200);
             this.textBoxSpeed.Name = "textBoxSpeed";
             this.textBoxSpeed.Size = new System.Drawing.Size(293, 30);
             this.textBoxSpeed.TabIndex = 3;
@@ -89,7 +89,7 @@ namespace CmdEditOccupantProfiles
             // textBoxSpeedProfile
             // 
             this.textBoxSpeedProfile.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxSpeedProfile.Location = new System.Drawing.Point(190, 256);
+            this.textBoxSpeedProfile.Location = new System.Drawing.Point(212, 256);
             this.textBoxSpeedProfile.Name = "textBoxSpeedProfile";
             this.textBoxSpeedProfile.Size = new System.Drawing.Size(293, 30);
             this.textBoxSpeedProfile.TabIndex = 4;
@@ -97,7 +97,7 @@ namespace CmdEditOccupantProfiles
             // textBoxDiameter
             // 
             this.textBoxDiameter.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxDiameter.Location = new System.Drawing.Point(190, 318);
+            this.textBoxDiameter.Location = new System.Drawing.Point(212, 318);
             this.textBoxDiameter.Name = "textBoxDiameter";
             this.textBoxDiameter.Size = new System.Drawing.Size(293, 30);
             this.textBoxDiameter.TabIndex = 5;
@@ -105,7 +105,7 @@ namespace CmdEditOccupantProfiles
             // textBoxIsMobilityImpaired
             // 
             this.textBoxIsMobilityImpaired.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxIsMobilityImpaired.Location = new System.Drawing.Point(190, 374);
+            this.textBoxIsMobilityImpaired.Location = new System.Drawing.Point(212, 374);
             this.textBoxIsMobilityImpaired.Name = "textBoxIsMobilityImpaired";
             this.textBoxIsMobilityImpaired.Size = new System.Drawing.Size(293, 30);
             this.textBoxIsMobilityImpaired.TabIndex = 6;
@@ -127,9 +127,9 @@ namespace CmdEditOccupantProfiles
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.Location = new System.Drawing.Point(55, 205);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(70, 25);
+            this.label3.Size = new System.Drawing.Size(121, 25);
             this.label3.TabIndex = 8;
-            this.label3.Text = "Speed";
+            this.label3.Text = "Speed (m/s)";
             // 
             // label4
             // 
@@ -147,9 +147,9 @@ namespace CmdEditOccupantProfiles
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(55, 323);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(63, 25);
+            this.label5.Size = new System.Drawing.Size(108, 25);
             this.label5.TabIndex = 10;
-            this.label5.Text = "Width";
+            this.label5.Text = "Width (cm)";
             // 
             // label6
             // 

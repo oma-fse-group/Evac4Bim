@@ -124,6 +124,8 @@ namespace Evac4Bim
 
             //TaskDialog.Show("Debug", storeys.Count.ToString());
 
+            //TaskDialog.Show("Debug", roomExitList.Count.ToString());
+
             /// 0. Checking door sizes and linking stairs
             ibcCheckDoorExits(roomExitList);
             ibcBuildVerticalTravelRoute(stairs,rooms);
@@ -183,6 +185,8 @@ namespace Evac4Bim
 
                 // C.4.1 : Check if door has required minimum size 
 
+                 
+
                 double width = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble(), UnitTypeId.Millimeters);
                 double height = UnitUtils.ConvertFromInternalUnits(d_f.Symbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT).AsDouble(), UnitTypeId.Millimeters);
 
@@ -239,9 +243,11 @@ namespace Evac4Bim
  
                     // C.1 Find doors belonging to current room
                     string roomName = r.LookupParameter("Name").AsString();
+                    string roomIfcName = r.LookupParameter("IfcName").AsString();
 
-                    List<Element> r_exits = roomExitList.OfType<FamilyInstance>().Where(door => door.FromRoom.LookupParameter("Name").AsString() == roomName).OfType<Element>().ToList();
+                    List<Element> r_exits = roomExitList.OfType<FamilyInstance>().Where(door => door.FromRoom.LookupParameter("IfcName").AsString() == roomIfcName).OfType<Element>().ToList();
 
+                    
                     // C.2 Compute the required exit capacity 
                     int OccupancyNumberSpace = 0;
                     int roomOccupantLoadStr = r.LookupParameter("OccupancyNumberSpace").AsInteger();

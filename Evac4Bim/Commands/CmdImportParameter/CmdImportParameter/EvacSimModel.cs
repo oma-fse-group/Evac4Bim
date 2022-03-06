@@ -348,11 +348,22 @@ namespace Evac4Bim
                     // else, retrieve it 
                     Door mergedDoor = doorList[r.name];
                     // append / update its properties
-                    mergedDoor.FirstOccupantInTime_array.Add(Double.Parse(r.FirstOccupantInTime));
-                    mergedDoor.LastOccupantOutTime_array.Add(Double.Parse(r.LastOccupantOutTime));
-                    mergedDoor.AverageOccupantFlowrate_array.Add(Double.Parse(r.AverageOccupantFlowrate));
-                    mergedDoor.TotalUse_array.Add(Double.Parse(r.TotalUse));
-
+                    
+                    try
+                    {
+                        mergedDoor.FirstOccupantInTime_array.Add(Double.Parse(r.FirstOccupantInTime));
+                        mergedDoor.LastOccupantOutTime_array.Add(Double.Parse(r.LastOccupantOutTime));
+                        mergedDoor.AverageOccupantFlowrate_array.Add(Double.Parse(r.AverageOccupantFlowrate));
+                        mergedDoor.TotalUse_array.Add(Double.Parse(r.TotalUse));
+                    }
+                    catch
+                    {
+                        mergedDoor.FirstOccupantInTime_array.Add(Double.Parse("0"));
+                        mergedDoor.LastOccupantOutTime_array.Add(Double.Parse("0"));
+                        mergedDoor.AverageOccupantFlowrate_array.Add(Double.Parse("0"));
+                        mergedDoor.TotalUse_array.Add(Double.Parse("0"));
+                    }
+                     
 
                 }
 
