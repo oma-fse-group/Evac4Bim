@@ -456,13 +456,25 @@ namespace Evac4Bim
         // Process an array and return a string contaning min,max,avg and std dev
         public static string procArray (List<double> nums)
         {
+            double min = 0 ;
+            double max = 0;
+            double avg =0;
+            double std = 0;
+            string result = "";
             string str = "avg=<avg>,min=<min>,max=<max>,std=<std>";
-
-            double min = Math.Round(nums.Min(), 2);
-            double max = Math.Round(nums.Max(), 2);
-            double avg = Math.Round(nums.Average(), 2);
-            double std = Math.Round(stdDev(nums), 2);
-            string result = str;
+            try
+            {
+                min = Math.Round(nums.Min(), 2);
+                max = Math.Round(nums.Max(), 2);
+                avg = Math.Round(nums.Average(), 2);
+                std = Math.Round(stdDev(nums), 2);
+                result = str;
+            }
+            catch
+            {
+                //TaskDialog.Show("Debg", nums.Count.ToString());
+            }
+            
             result = result.Replace("<min>", min.ToString());
             result = result.Replace("<max>", max.ToString());
             result = result.Replace("<avg>", avg.ToString());

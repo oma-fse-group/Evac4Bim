@@ -162,21 +162,46 @@ namespace Evac4Bim
                                  // find furthest point from exit door
                                 double maxDist = 0;
                                 XYZ selectedPoint = new XYZ();
+                                //Order points by distance 
+                                SortedList<Double, XYZ> sortedDistances = new SortedList<Double, XYZ>();
                                 foreach (XYZ point in vertices)
                                 {
+                                    
                                     double d = point.DistanceTo(exit);
+                                    sortedDistances.Add(d,point);
                                     if (d > maxDist)
                                     {
                                         maxDist = d;
                                         selectedPoint = point;
                                     }
+                                     
 
                                 }
  
 
+
                                 try
                                 {
                                    PathOfTravel pth =  PathOfTravel.Create(v, selectedPoint, exit);
+                                    
+                                    if (pth == null)
+                                    {
+                                        // If it fails to make path, try with other vertices, starting from the most remote to closer ones ! 
+                                        //  TaskDialog.Show("error", "Error");
+
+                                        int count = sortedDistances.Keys.Count() - 1;
+                                        for (int i = count; i>=0; i--)
+                                        {
+
+                                            pth = PathOfTravel.Create(v, sortedDistances.Values.ElementAt(i), exit);
+                                            if (pth != null)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                         
+                                    }
+
                                     if (pth != null)
                                     {
                                         double distance = Math.Round(UnitUtils.ConvertFromInternalUnits(pth.LookupParameter("Length").AsDouble(), UnitTypeId.Millimeters), 0);
@@ -193,7 +218,7 @@ namespace Evac4Bim
                                             XYZ p1 = c.GetEndPoint(1);
                                             string p1str = IBCCheckUtils.XYZToString(p1);
                                             // avoid duplicates
-                                            if(!pthCurvesStr.Contains(p0str))
+                                            if (!pthCurvesStr.Contains(p0str))
                                             {
                                                 pthCurvesStr.Add(p0str);
                                             }
@@ -207,18 +232,16 @@ namespace Evac4Bim
 
                                         foreach (string st in pthCurvesStr)
                                         {
-                                            pthPoints += "(" + st + ")"+",";
-                                           // TaskDialog.Show("Debug", st);
+                                            pthPoints += "(" + st + ")" + ",";
+                                            // TaskDialog.Show("Debug", st);
                                         }
                                         pthPoints = pthPoints.Remove(pthPoints.Count() - 1);
-                                       // TaskDialog.Show("Debug", pthPoints);
+                                        // TaskDialog.Show("Debug", pthPoints);
                                         //Write into  model
 
                                         r.LookupParameter("EgressPathTravelXYZ").Set(pthPoints);
 
                                     }
-                                   
-
                                 }
                                 catch
                                 {

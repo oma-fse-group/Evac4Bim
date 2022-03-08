@@ -1532,11 +1532,11 @@ namespace Evac4Bim
 
             OverrideGraphicSettings ogs = new OverrideGraphicSettings();
             ogs.SetProjectionLineColor(green);
-            ogs.SetProjectionLineWeight(10);
+            ogs.SetProjectionLineWeight(7);
 
             OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
             ogs_error.SetProjectionLineColor(red);
-            ogs_error.SetProjectionLineWeight(10);
+            ogs_error.SetProjectionLineWeight(7);
 
             foreach (Element t in travelPaths)
             {
