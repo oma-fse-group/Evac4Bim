@@ -141,18 +141,7 @@ namespace Evac4Bim
                         if (preferredExitName!="" && preferredExitName!=null)
                         {
                             XYZ exit = null;
-                            ElementId eid = null;
-
-
-                                try
-                            {
-                                eid =  new ElementId(int.Parse(preferredExitName.Split('_').Last()));
-
-                            }
-                            catch
-                            {
-                                continue; // skip
-                            }
+                            ElementId eid = new ElementId(int.Parse(preferredExitName.Split('_').Last()));
                             //ElementId eid = new ElementId(356162);
                             Element exitEle = doc.GetElement(eid);
                             if (exitEle.Location != null)

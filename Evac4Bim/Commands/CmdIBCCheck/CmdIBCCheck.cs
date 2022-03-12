@@ -130,8 +130,6 @@ namespace Evac4Bim
             ibcCheckDoorExits(roomExitList);
             ibcBuildVerticalTravelRoute(stairs,rooms);
 
-
-            
             /// 1 . Checking room egress capacity + occupant load 
            int result = 0; 
            ibcCheckRooms(rooms, roomExitList, out result);
@@ -169,7 +167,7 @@ namespace Evac4Bim
 
             // Confirmation
             TaskDialog.Show("Result", "IBC prescription check completed successfully !");
-            
+
             tx.Commit();
             return Result.Succeeded;
         }
@@ -1184,15 +1182,7 @@ namespace Evac4Bim
                 {
                     //a note was previously defined
                     // try to retrieve it 
-                    try
-                    {
-                        note = doc.GetElement(new ElementId(int.Parse(textNoteId))) as TextNote;
-                    }
-                    catch
-                    {
-                        note = null;
-                    }
-                    
+                    note = doc.GetElement(new ElementId(int.Parse(textNoteId))) as TextNote;
                     // check if element exists 
                     if (note != null)
                     {
@@ -1825,67 +1815,8 @@ namespace Evac4Bim
                 double s_treadDepth = Math.Round(UnitUtils.ConvertFromInternalUnits(s.ActualTreadDepth, UnitTypeId.Millimeters), 1);
                 double VerticalLength = Math.Sqrt((s_treadDepth * s_treadDepth + s_riserHeight * s_riserHeight)) * s.ActualRisersNumber;
 
-                StairsType s_FI = doc.GetElement(s.GetTypeId()) as StairsType;
-
-                /// 1.1 Get stair width 
-                double s_width = Math.Round(UnitUtils.ConvertFromInternalUnits(s_FI.MinRunWidth, UnitTypeId.Millimeters), 1); // mm
-
-
-
-                // Landings 
-
-                // compute the pathLength and append VerticalLength
-                // pathLength = corresponds to a rectangular path 
-                //... which is enclosed by the landing 
-                // cf. Predtechenskii and Milinskii method 
-                // Lp = 2B + n_w + 2n_l
-                // B : width of the stair 
-                // n_w and n_l : newel width and length
-                // Note : newel is ignored aswell as the boundary distance ! 
-                // Do this for every landing in the stair
-
-                ICollection<ElementId> landingIds = s.GetStairsLandings();
- 
-                 foreach (ElementId landingId in landingIds)
-                {
-                    
-                         
-                        double pathLength = Math.Round(2*s_width , 2);
-                       // TaskDialog.Show("Debug", pathLength.ToString());
-                       VerticalLength += pathLength;
-
-
-                    /* StairsLanding landing = s.Document.GetElement(landingId) as StairsLanding;
-                    if (null != landing)
-                    {
-                       double length = 0;
-                        try
-                        {
-                            List<Curve> cLoop = landing.GetFootprintBoundary().ToList();
-                            foreach (Curve c in cLoop) // loop through all curves and keep the largest value as the length
-                            {
-                                double temp = UnitUtils.ConvertFromInternalUnits(c.Length, UnitTypeId.Millimeters);
-                                if (temp > length)
-                                {
-                                    length = temp;
-                                }
-                            }
-                        }
-                        catch
-                        {
-                            // ignore the landings
-                        }
-
-                        //TaskDialog.Show("Debug", length.ToString());
-                       
-                    }*/
-                }
-
                 // write 
-
                 s.LookupParameter("VerticalLength").Set(UnitUtils.Convert(VerticalLength, UnitTypeId.Millimeters, UnitTypeId.Feet));
-
-
 
 
             }
