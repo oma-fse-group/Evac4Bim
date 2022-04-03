@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdLaunchResults", "Evac4Bi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdExportIfc", "Evac4Bim\Commands\CmdExportIfc\CmdExportIfc.csproj", "{AAFA5BF6-90E1-48F7-9DB7-D76412FAF33D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdResultAnimation", "Evac4Bim\Commands\CmdResultAnimation\CmdResultAnimation.csproj", "{0ACCF46E-AECD-4344-B788-07E2F14A2E20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{AAFA5BF6-90E1-48F7-9DB7-D76412FAF33D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAFA5BF6-90E1-48F7-9DB7-D76412FAF33D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAFA5BF6-90E1-48F7-9DB7-D76412FAF33D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0ACCF46E-AECD-4344-B788-07E2F14A2E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0ACCF46E-AECD-4344-B788-07E2F14A2E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0ACCF46E-AECD-4344-B788-07E2F14A2E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0ACCF46E-AECD-4344-B788-07E2F14A2E20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

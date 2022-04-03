@@ -142,7 +142,18 @@ namespace Evac4Bim
             PushButton CmdCreateSchedulesPushButton = panel3.AddItem(CmdCreateSchedulesButton) as PushButton;
             CmdCreateSchedulesPushButton.LargeImage = CmdCreateSchedulesButtonImg;
 
-            
+
+            // Add a command to the ribbon 
+            assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdResultAnimation.dll";
+            PushButtonData CmdResultAnimationButton = new PushButtonData("CmdResultAnimation", "Play\nResults", assembly, "Revit.SDK.Samples.ModelessForm_ExternalEvent.CS.Command");
+            // Create img icon 
+            Uri CmdResultAnimationButtonImgPath = new Uri(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\icons\CmdResultAnimation.png");
+            BitmapImage CmdResultAnimationButtonImg = new BitmapImage(CmdResultAnimationButtonImgPath);
+            PushButton CmdResultAnimationPushButton = panel3.AddItem(CmdResultAnimationButton) as PushButton;
+            CmdResultAnimationPushButton.LargeImage = CmdResultAnimationButtonImg;
+
+
+
             // Building group 
             // Add a command to the ribbon 
             path2 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\CmdBuildingGroup.dll";

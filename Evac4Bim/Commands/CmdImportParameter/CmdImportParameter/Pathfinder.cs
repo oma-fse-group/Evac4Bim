@@ -190,6 +190,30 @@ namespace Evac4Bim
             // get time (first column)
             List<string> time = getColumn(0, csv.Skip(1));
 
+            // Register number of values and timestep
+            EvClass.numberOfValues = time.Count.ToString();
+            double timestep = 0;
+             
+                if (time.Count>1)
+                {
+
+                try
+                {
+                    double t0 = double.Parse(time.ElementAt(0));
+                    double t1 = double.Parse(time.ElementAt(1));
+
+                    timestep = t1 - t0;
+
+                }
+                catch
+                {
+
+                }
+                
+                }
+            EvClass.csvTimeStep = timestep.ToString();
+            
+
             /***
              * 
              * 

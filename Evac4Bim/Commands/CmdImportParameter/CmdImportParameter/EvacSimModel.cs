@@ -109,6 +109,8 @@ namespace Evac4Bim
         public string EvacuationModelVersion { get; set; }
         public string EvacuationSimulationBrief { get; set; }
         public string EvacuationModelVendor { get; set; }
+        public string numberOfValues { get; set; }
+        public string csvTimeStep { get; set; }
 
         public bool WriteIntoRevitModel(Document doc)
         {
@@ -264,6 +266,13 @@ namespace Evac4Bim
             projInfo.LookupParameter("EvacuationModelVersion").Set(this.EvacuationModelVersion.ToString());
             projInfo.LookupParameter("EvacuationModelVendor").Set(this.EvacuationModelVendor.ToString());
 
+            projInfo.LookupParameter("CsvTimeStep").Set(this.csvTimeStep.ToString());
+            projInfo.LookupParameter("NumberOfValues").Set(this.numberOfValues.ToString());
+
+            
+
+
+
 
             return true;
         }
@@ -289,6 +298,8 @@ namespace Evac4Bim
                 mergedModel.EvacuationModelName = evc.EvacuationModelName;
                 mergedModel.EvacuationModelVersion = evc.EvacuationModelVersion;
                 mergedModel.EvacuationModelVendor = evc.EvacuationModelVendor;
+                mergedModel.numberOfValues = evc.numberOfValues;
+                mergedModel.csvTimeStep = evc.csvTimeStep;
 
 
                 foreach (Room r in evc.rooms)
