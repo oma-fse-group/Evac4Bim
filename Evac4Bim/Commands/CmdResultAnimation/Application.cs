@@ -87,7 +87,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             if (m_MyForm == null || m_MyForm.IsDisposed)
             {
                 // A new handler to handle request posting by the dialog
-                RequestHandler handler = new RequestHandler();
+                RequestHandler handler = new RequestHandler(uiapp);
                 handler.m_frames = f;
 
                 // External Event for the dialog to use (to post requests)

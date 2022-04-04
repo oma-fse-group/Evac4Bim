@@ -34,6 +34,46 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
     public class RequestHandler : IExternalEventHandler
     {
         // Door colors 
+        private OverrideGraphicSettings ogs;
+        private OverrideGraphicSettings default_ogs;
+        private OverrideGraphicSettings ogs_error;
+        private OverrideGraphicSettings ogs_warning;
+
+
+        public RequestHandler(UIApplication uiapp)
+        {
+            // This is the constructor method.  
+
+            Document doc = uiapp.ActiveUIDocument.Document;
+
+            // color doors depending on max flowrate
+            Color green = new Color((byte)0, (byte)255, (byte)0);
+            Color red = new Color((byte)255, (byte)0, (byte)0);
+            Color amber = new Color((byte)255, (byte)191, (byte)0);
+
+
+            this.ogs = new OverrideGraphicSettings();
+            this.ogs.SetProjectionLineColor(green);
+            this.ogs.SetProjectionLineWeight(7);
+
+            this.default_ogs = new OverrideGraphicSettings();
+
+            this.ogs_error = new OverrideGraphicSettings();
+            this.ogs_error.SetProjectionLineColor(red);
+            this.ogs_error.SetProjectionLineWeight(7);
+
+            this.ogs_warning = new OverrideGraphicSettings();
+            this.ogs_warning.SetProjectionLineColor(amber);
+            this.ogs_warning.SetProjectionLineWeight(7);
+
+
+
+            this.MaxDoorFlowrate = doc.ProjectInformation.LookupParameter("MaxDoorFlowrate").AsDouble();
+
+        }
+
+
+        private double MaxDoorFlowrate;
 
 
         // The value of the latest request made by the modeless form 
@@ -128,27 +168,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             Transaction trans = new Transaction(uidoc.Document);
             trans.Start("new Transaction");
 
-            // color doors depending on max flowrate
-            Color green = new Color((byte)0, (byte)255, (byte)0);
-            Color red = new Color((byte)255, (byte)0, (byte)0);
-            Color amber = new Color((byte)255, (byte)191, (byte)0);
-
-
-            OverrideGraphicSettings ogs = new OverrideGraphicSettings();
-            ogs.SetProjectionLineColor(green);
-            ogs.SetProjectionLineWeight(7);
-
-            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
-
-            OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
-            ogs_error.SetProjectionLineColor(red);
-            ogs_error.SetProjectionLineWeight(7);
-
-            OverrideGraphicSettings ogs_warning = new OverrideGraphicSettings();
-            ogs_warning.SetProjectionLineColor(amber);
-            ogs_warning.SetProjectionLineWeight(7);
-
-            double MaxDoorFlowrate = doc.ProjectInformation.LookupParameter("MaxDoorFlowrate").AsDouble();
+            
 
             int index = this.m_sliderVal;
             foreach (Frames f in this.m_frames)
@@ -232,8 +252,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             Document doc = uiapp.ActiveUIDocument.Document;
             UIDocument uidoc = uiapp.ActiveUIDocument;
 
-            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
-
+ 
 
             Transaction trans = new Transaction(uidoc.Document);
             trans.Start("new Transaction");
