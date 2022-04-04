@@ -33,17 +33,20 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
     /// 
     public class RequestHandler : IExternalEventHandler
     {
-        
+        // Door colors 
+
 
         // The value of the latest request made by the modeless form 
         private Request m_request = new Request();
 
         //value of slider 
-        public double m_sliderVal = 0;
+        public int m_sliderVal = 0;
 
         // List of frame containers 
-        List<Frames> m_frames = new List<Frames>();
+        public List<Frames> m_frames = new List<Frames>();
 
+        // Reference to form
+        public ModelessForm m_form = null;
         /// <summary>
         /// A public property to access the current request value
         /// </summary>
@@ -77,16 +80,23 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             {
                 switch (Request.Take())
                 {
-                    
+
                     case RequestId.None:
                         {
                             return;  // no request at this time -> we can leave immediately
-                        }                    
+                        }
                     case RequestId.SliderScroll:
                         {
-                            //TaskDialog.Show("Hello", this.m_sliderVal.ToString());
 
-                            UpdateFrame(uiapp,this.m_sliderVal);
+                            UpdateFrame(uiapp, this.m_sliderVal);
+
+                            break;
+
+                        }
+                    case RequestId.Exit:
+                        {
+                            // TaskDialog.Show("Debug", "clear model");
+                            Clear(uiapp);
 
                             break;
                         }
@@ -107,28 +117,147 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         }
 
 
-         
-      
-         
-        private void UpdateFrame (UIApplication uiapp, double sliderValue)
+
+
+
+        private void UpdateFrame(UIApplication uiapp, double sliderValue)
         {
             Document doc = uiapp.ActiveUIDocument.Document;
             UIDocument uidoc = uiapp.ActiveUIDocument;
 
             Transaction trans = new Transaction(uidoc.Document);
             trans.Start("new Transaction");
-            
-            //this.m_doc.GetElement(new ElementId())
-            int id = int.Parse(doc.ProjectInformation.LookupParameter("AnnotationID").AsString());
-            ElementId eId = new ElementId(id);
 
-            TextNote note = doc.GetElement(eId) as TextNote;
-            note.Text = sliderValue.ToString();
+            // color doors depending on max flowrate
+            Color green = new Color((byte)0, (byte)255, (byte)0);
+            Color red = new Color((byte)255, (byte)0, (byte)0);
+            Color amber = new Color((byte)255, (byte)191, (byte)0);
+
+
+            OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+            ogs.SetProjectionLineColor(green);
+            ogs.SetProjectionLineWeight(7);
+
+            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
+
+            OverrideGraphicSettings ogs_error = new OverrideGraphicSettings();
+            ogs_error.SetProjectionLineColor(red);
+            ogs_error.SetProjectionLineWeight(7);
+
+            OverrideGraphicSettings ogs_warning = new OverrideGraphicSettings();
+            ogs_warning.SetProjectionLineColor(amber);
+            ogs_warning.SetProjectionLineWeight(7);
+
+            double MaxDoorFlowrate = doc.ProjectInformation.LookupParameter("MaxDoorFlowrate").AsDouble();
+
+            int index = this.m_sliderVal;
+            foreach (Frames f in this.m_frames)
+            {
+                // value 
+                string val = null;
+                if (index >= f.values.Length)
+                {
+                    val = f.values[0];
+                }
+                else
+                {
+                    val = f.values[index];
+                }
+                 
+                // write value
+                if (f.type == TargetType.TextBox)
+                {
+                    TextNote note = doc.GetElement(f.targetId) as TextNote;
+                    note.Text = f.parameterName + val;
+                }
+                else if (f.type == TargetType.Room)
+                {
+                    // edit room property ! 
+                    Element ele = doc.GetElement(f.targetId);
+                    try
+                    {
+                        double value = double.Parse(val);
+                        ele.LookupParameter(f.parameterName).Set(value);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                }
+
+                else if(f.type == TargetType.Door)
+                {
+
+                   
+                        double flowrate = double.Parse(val);
+
+                        if (flowrate >= MaxDoorFlowrate)
+                        {
+                            doc.ActiveView.SetElementOverrides(f.targetId, ogs_error);
+                        }
+                        else if (flowrate >= (0.5 * MaxDoorFlowrate))
+                        {
+                            doc.ActiveView.SetElementOverrides(f.targetId, ogs_warning);
+                        }
+                        else if (flowrate > 0)
+                        {
+                            doc.ActiveView.SetElementOverrides(f.targetId, ogs);
+                        }
+                        else
+                        {
+                            doc.ActiveView.SetElementOverrides(f.targetId, default_ogs);
+                        }
+
+                    
+
+                   
+
+
+
+                }
+
+
+            }
 
             trans.Commit();
 
-           // TaskDialog.Show("Hello", this.m_sliderVal.ToString());
+            // TaskDialog.Show("Hello", this.m_sliderVal.ToString());
         }
+
+
+        // remove text boxes
+        private void Clear(UIApplication uiapp)
+        {
+            Document doc = uiapp.ActiveUIDocument.Document;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+
+            OverrideGraphicSettings default_ogs = new OverrideGraphicSettings();
+
+
+            Transaction trans = new Transaction(uidoc.Document);
+            trans.Start("new Transaction");
+
+            foreach (Frames f in this.m_frames)
+            {
+                // ensure its not a room or a critical element  !
+
+                if (f.type == TargetType.TextBox)
+                {
+                    doc.Delete(f.targetId);
+                }
+                if (f.type == TargetType.Door)
+                {
+                    doc.ActiveView.SetElementOverrides(f.targetId, default_ogs);
+                }
+
+            }
+
+            this.m_form.Close();
+
+            trans.Commit();
+        }
+
 
     }  // class
 

@@ -29,6 +29,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.btnExit = new System.Windows.Forms.Button();
             this.timerLabel = new System.Windows.Forms.Label();
@@ -36,6 +37,8 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             this.maxTimeLabel = new System.Windows.Forms.Label();
             this.bwdButtom = new System.Windows.Forms.Button();
             this.fwdButtom = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.playButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -45,8 +48,8 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(818, 56);
             this.trackBar1.TabIndex = 0;
-            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll_1);
-            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_Scroll_1);
+            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
+            this.trackBar1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseUp);
             // 
             // btnExit
             // 
@@ -69,7 +72,6 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             this.timerLabel.TabIndex = 1;
             this.timerLabel.Text = "00/00";
             this.timerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.timerLabel.Click += new System.EventHandler(this.timerLabel_Click);
             // 
             // minTimeLabel
             // 
@@ -96,7 +98,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             // bwdButtom
             // 
             this.bwdButtom.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bwdButtom.Location = new System.Drawing.Point(377, 70);
+            this.bwdButtom.Location = new System.Drawing.Point(353, 70);
             this.bwdButtom.Name = "bwdButtom";
             this.bwdButtom.Size = new System.Drawing.Size(40, 28);
             this.bwdButtom.TabIndex = 4;
@@ -107,7 +109,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             // fwdButtom
             // 
             this.fwdButtom.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fwdButtom.Location = new System.Drawing.Point(423, 70);
+            this.fwdButtom.Location = new System.Drawing.Point(455, 70);
             this.fwdButtom.Name = "fwdButtom";
             this.fwdButtom.Size = new System.Drawing.Size(41, 28);
             this.fwdButtom.TabIndex = 5;
@@ -115,12 +117,28 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
             this.fwdButtom.UseVisualStyleBackColor = true;
             this.fwdButtom.Click += new System.EventHandler(this.fwdButtom_Click);
             // 
+            // timer1
+            // 
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // playButton
+            // 
+            this.playButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playButton.Location = new System.Drawing.Point(403, 70);
+            this.playButton.Name = "playButton";
+            this.playButton.Size = new System.Drawing.Size(40, 28);
+            this.playButton.TabIndex = 6;
+            this.playButton.Text = ">";
+            this.playButton.UseVisualStyleBackColor = true;
+            this.playButton.Click += new System.EventHandler(this.playButton_Click);
+            // 
             // ModelessForm
             // 
             this.AcceptButton = this.btnExit;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 102);
+            this.Controls.Add(this.playButton);
             this.Controls.Add(this.fwdButtom);
             this.Controls.Add(this.bwdButtom);
             this.Controls.Add(this.maxTimeLabel);
@@ -153,5 +171,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         private System.Windows.Forms.Label maxTimeLabel;
         private System.Windows.Forms.Button bwdButtom;
         private System.Windows.Forms.Button fwdButtom;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Button playButton;
     }
 }

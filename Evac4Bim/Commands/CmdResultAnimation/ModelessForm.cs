@@ -23,6 +23,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         private double m_currentTime;
         private double m_totalTime;
         private double m_timeStep;
+        private bool playerState = false;
 
         /// <summary>
         ///   Dialog instantiation
@@ -42,6 +43,9 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
 
             // init labels 
             this.maxTimeLabel.Text = this.m_totalTime.ToString();
+
+            // init timer 
+            this.timer1.Interval = (int)(timestep * 1000);
             
         }
 
@@ -122,51 +126,99 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         /// </summary>
         /// 
         
-
-        private void ModelessForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void trackBar1_Scroll_1(object sender, EventArgs e)
-        {
-            m_Handler.m_sliderVal = this.trackBar1.Value;
-
-            this.m_currentTime = this.trackBar1.Value * this.m_timeStep;
-
-            this.timerLabel.Text = this.m_currentTime.ToString() + " s";
-
-            MakeRequest(RequestId.SliderScroll);
-        }
-
         private void btnExit_Click_1(object sender, EventArgs e)
         {
-            Close();
+            MakeRequest(RequestId.Exit);
+           // Close();
         }
 
-        private void timerLabel_Click(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private void bwdButtom_Click(object sender, EventArgs e)
         {
+            moveBkwd();
+
+        }
+        private void moveBkwd()
+        {
             int val = this.trackBar1.Value;
-            if (val > this.trackBar1.Minimum )
+            if (val > this.trackBar1.Minimum)
             {
                 val--;
                 this.trackBar1.Value = val;
+                MakeRequest(RequestId.SliderScroll);
             }
+            
         }
 
         private void fwdButtom_Click(object sender, EventArgs e)
+        {
+            movefrwd();
+             
+        }
+        private void movefrwd()
         {
             int val = this.trackBar1.Value;
             if (val < this.trackBar1.Maximum)
             {
                 val++;
                 this.trackBar1.Value = val;
+                MakeRequest(RequestId.SliderScroll);
+
             }
+        }
+
+        private void trackBar1_MouseUp(object sender, MouseEventArgs e)
+        {            
+            MakeRequest(RequestId.SliderScroll);
+        }
+
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            m_Handler.m_sliderVal = this.trackBar1.Value;
+
+            this.m_currentTime = this.trackBar1.Value * this.m_timeStep;
+
+            this.timerLabel.Text = this.m_currentTime.ToString() + " / "+ m_totalTime.ToString() + " s";
+        }
+
+        
+        private void switchTimer()
+        {
+            this.playerState = !playerState;
+            timer1.Enabled = playerState;
+            // also switch icon 
+            if (timer1.Enabled)
+            {
+                playButton.Text = "||";
+            }
+            else
+            {
+                playButton.Text = ">";
+            }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (this.trackBar1.Value >= this.trackBar1.Maximum)
+            {
+                switchTimer();
+            }
+            else
+            {
+                this.movefrwd();
+            }
+            
+        }
+
+        private void playButton_Click(object sender, EventArgs e)
+        {
+            switchTimer();
+        }
+
+        private void ModelessForm_Load(object sender, EventArgs e)
+        {
+
         }
     }  // class
 }

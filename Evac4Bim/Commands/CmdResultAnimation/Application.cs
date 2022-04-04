@@ -81,13 +81,14 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         ///   The external command invokes this on the end-user's request
         /// </remarks>
         /// 
-        public void ShowForm(UIApplication uiapp, int numberOfValues, double timestep)
+        public void ShowForm(UIApplication uiapp, int numberOfValues, double timestep, List<Frames> f)
         {
             // If we do not have a dialog yet, create and show it
             if (m_MyForm == null || m_MyForm.IsDisposed)
             {
                 // A new handler to handle request posting by the dialog
                 RequestHandler handler = new RequestHandler();
+                handler.m_frames = f;
 
                 // External Event for the dialog to use (to post requests)
                 ExternalEvent exEvent = ExternalEvent.Create(handler);
@@ -98,7 +99,9 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
                 
 
                 m_MyForm = new ModelessForm(exEvent, handler, numberOfValues,timestep);
+                handler.m_form = m_MyForm; // pass the form to the handler 
                 m_MyForm.Show();
+              
             }
         }
 

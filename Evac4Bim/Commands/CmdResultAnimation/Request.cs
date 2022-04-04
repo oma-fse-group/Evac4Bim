@@ -37,7 +37,8 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
         /// <summary>
         /// "SliderScroll" request
         /// </summary>
-       SliderScroll = 1
+       SliderScroll = 1,
+       Exit = 2
     }
 
     /// <summary>

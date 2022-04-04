@@ -7,12 +7,22 @@ using System.Threading.Tasks;
 
 namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
 {
-    class Frames
+    public class Frames
     {
-        public Element target { get; set; } // can be the id of a tag or a room
-        public double[] values { get; set; }  // values 
+        public ElementId targetId { get; set; } // can be the id of a text box or a room
+        public string[] values { get; set; }  // values 
         public string parameterName { get; set; }
-
+        public TargetType type { get; set; }
 
     }
+
+    public enum TargetType : int
+    {
+
+        Room = 0,
+        TextBox = 1,
+        Door = 2
+    }
+
+     
 }
