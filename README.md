@@ -75,11 +75,13 @@ The solution and its sub projects are already configured but ensure your local e
 - Once you setup the environment, build the solution 
 - To deploy the solution, copy the assemblies into Revit's addin folder e.g C:\ProgramData\Autodesk\Revit\Addins\2022
 
-**Note** : the project solution is configured to autmatically copy the assemblies and dependencies into the add-in folder as a "post-build" event. You can adjust the path to the folder in project properties or disable the post-build event. 
+**Note 1** : the project solution is configured to autmatically copy the assemblies and dependencies into the add-in folder as a "post-build" event. You can adjust the path to the folder in project properties or disable the post-build event. 
 
-**Note 2** : In any case, you have to follow the same folder structure as the install package provided for installation (see above). 
+**Note 2** : In any case, you have to follow the same folder structure as the installation package provided in the release (see above). 
 
-- Do not forget to add manifest files (.addin). You can use the manifest files included in the release as template
+**Note 3** : Do not forget to add manifest files (.addin). You can use the manifest files included in the installation package of the release.
+
+**Note 4** : Do not forget to add the assembly dlls for the dependecies (please refer to the installation package of the release - see above).
 
 ## Case Studies and Sample Projects 
 You can find sample project files on this [repo](https://mega.nz/folder/TPpyjAQC#VJr5T6PZo0-9qF5yHBNvPw). 
