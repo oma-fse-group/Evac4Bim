@@ -10,6 +10,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 /// <summary>
 /// This class enables the user to launch Pathfinder results from the Revit UI 
+/// The path to the binary must be defined first in the project parameters => PathfinderResultsBinary
 /// </summary>
 namespace Evac4Bim
 {

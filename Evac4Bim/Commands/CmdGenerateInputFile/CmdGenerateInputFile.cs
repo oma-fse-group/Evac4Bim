@@ -10,7 +10,7 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 /// <summary>
 /// This class allows user to export an extended pathfinder input file 
-/// The original input file (contatining the geometry) is selected by user 
+/// The original input file (containing the geometry) is selected by user 
 /// Additional properties -extracted from the model - are added to the input file 
 /// </summary>
 

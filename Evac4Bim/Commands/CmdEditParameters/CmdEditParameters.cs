@@ -7,8 +7,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 /// <summary>
-/// This class creates a schedule in the revit UI
-/// This allows user to edit fields that are requried for the check
+/// This class schedules the fields that need to be edited prior the prescriptive check
 /// </summary>
 
 

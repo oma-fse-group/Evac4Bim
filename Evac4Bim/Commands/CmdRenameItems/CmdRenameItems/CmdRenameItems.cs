@@ -11,7 +11,7 @@ using Autodesk.Revit.UI;
 /// <summary>
 /// This class sets the parameter "IfcName" for elements such as doors and rooms 
 /// The name includes the id of the element in the Revit model
-/// The name is stored in the ifc model and used to querry the elements when importing results 
+/// The name is stored in the ifc model and used to query the elements when importing results 
 /// </summary>
 
 namespace Evac4Bim

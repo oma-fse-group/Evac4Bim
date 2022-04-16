@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 /// <summary>
-/// This class allows user to edit/store occupant profiles in the model with a UI
+/// This class enables the user to edit/store occupant profiles in the model
 /// </summary>
 namespace Evac4Bim
 {

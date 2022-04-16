@@ -10,6 +10,10 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
 /// <summary>
+/// This class performs an automated review of specific IBC prescriptions related to fire evacaution. It checks various requirements at different levels : space => storey => stair => building. The results are dispalyed in the form of text notes, color schemes and object coloring (doors and stairs)  
+/// 
+/// 
+/// Note ; 
 /// Variables of type "length" are stored in Revit as "feet" 
 /// Therefore, everytime the values are set => convert into feet 
 /// Everytime the values are gathered from Revit => convert into mm 

@@ -10,7 +10,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using CmdPlotCharts;
 /// <summary>
-/// This class plots various charts 
+/// This class plots various charts from imported simulation results 
 /// Data is retrieved from internal properties  
 /// Data is parsed from the internal variables and passed to the external class "Figure" for plotting
 /// 4 classes are defined : one for rooms - one for global data - one for door flowrates - one for stair usage 

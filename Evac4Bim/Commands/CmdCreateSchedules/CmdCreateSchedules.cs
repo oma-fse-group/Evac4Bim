@@ -7,7 +7,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 /// <summary>
-/// This class create schedule in the revit UI
+/// This class creates schedules  in the Revit UI to display simulation results that were imported
 /// </summary>
 
 

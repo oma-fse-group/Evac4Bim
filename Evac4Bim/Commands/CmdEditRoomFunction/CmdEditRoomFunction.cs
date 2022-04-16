@@ -13,8 +13,7 @@ using System.Reflection;
 using Autodesk.Revit.UI.Selection;
 /// <summary>
 /// This class allows the user to define the function of a room 
-/// Then, it changes related properties wich depend on the room function 
-/// such as AreaPerOccupantSpace, load factor, ... 
+/// Then, it initializes variables which depend on the room function such as AreaPerOccupantSpace, Load factor 
 /// Room functions are stored in a csv file 
 /// </summary>
 /// 

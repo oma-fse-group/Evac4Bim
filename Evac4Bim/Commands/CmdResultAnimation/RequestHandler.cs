@@ -54,17 +54,17 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
 
             this.ogs = new OverrideGraphicSettings();
             this.ogs.SetProjectionLineColor(green);
-            this.ogs.SetProjectionLineWeight(7);
+            this.ogs.SetProjectionLineWeight(10);
 
             this.default_ogs = new OverrideGraphicSettings();
 
             this.ogs_error = new OverrideGraphicSettings();
             this.ogs_error.SetProjectionLineColor(red);
-            this.ogs_error.SetProjectionLineWeight(7);
+            this.ogs_error.SetProjectionLineWeight(10);
 
             this.ogs_warning = new OverrideGraphicSettings();
             this.ogs_warning.SetProjectionLineColor(amber);
-            this.ogs_warning.SetProjectionLineWeight(7);
+            this.ogs_warning.SetProjectionLineWeight(10);
 
 
 

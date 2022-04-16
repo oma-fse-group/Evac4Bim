@@ -185,7 +185,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
                 Frames frm30 = new Frames();
                 frm30.values = dataY;
                 frm30.targetId = note30.Id;
-                frm30.parameterName = "Remaining : ";
+                frm30.parameterName = "# = ";
                 frm30.type = TargetType.TextBox;
 
                 // append list of frames
@@ -311,7 +311,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
                 Frames frm3 = new Frames();
                 frm3.values = dataY;
                 frm3.targetId = note.Id;
-                frm3.parameterName = "Flowrate : ";
+                frm3.parameterName = "Q = ";
                 frm3.type = TargetType.TextBox;
 
 
@@ -324,7 +324,7 @@ namespace Revit.SDK.Samples.ModelessForm_ExternalEvent.CS
                 Frames frm4 = new Frames();
                 frm4.values = dataY;
                 frm4.targetId = d.Id;
-                frm4.parameterName = "MaxDoorFlowrate";
+                frm4.parameterName = "Max Door Flowrate";
                 frm4.type = TargetType.Door;
                 f.Add(frm4);
 

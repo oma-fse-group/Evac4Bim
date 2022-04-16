@@ -11,10 +11,11 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using CmdMakePaths;
 /// <summary>
-/// Limitations : Vertical travel not handled - Occupants are assumed to be safe as soon as they reach the emergency staircase (true is stair is protected by fire door + pressurization)
 /// CmdMakePaths : this class enables the generation of travel paths 
 /// It queries the list of rooms and storeys and calls for the helper method generateTravelPaths
 /// CmdSelectPreferredExit : This class allows user to assign an exit (DischargeExit) to different rooms
+/// CmdSelectPreferredStair : This class allows user to assign a stairway to different rooms
+/// CmdAssignLinkedComponent : This class allows to link individual stairs part of a multisotrey system in order to compute the vertical travel distance
 /// </summary>
 namespace Evac4Bim
 {
