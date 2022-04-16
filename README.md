@@ -1,5 +1,5 @@
 # Evac4Bim
-A Revit add-in for better integration of Fire Evacuation into te BIM worklfow. 
+A Revit add-in that improves the integration of Fire Evacuation into te BIM worklfow. 
 
 This add-in was developed as part of a master thesis and in partial fulfilment of the requirements for the degree of The International Master of Science in Fire Safety Engineering [(IMFSE)](https://imfse.be/). The full text of thesis will be published shortly. 
 
@@ -55,6 +55,18 @@ You can find sample project files on this [repo](https://mega.nz/folder/TPpyjAQC
 It includes Revit models, IFC files, Pathfinder models as well as the Solibri ruleset used for validation. Additionally, video recordings are included. 
 
 ## Known Limitations 
+The following limitations should be considered regarding the prototype code reviewer: 
+-	Only starting number of occupants is considered for evacuation capacity check (i.e., rooms discharging to another room are not considered) 
+-	Path of travel: only one per room. Alternative paths are not considered.
+-	There can only be one discharge level in a multistorey building. At the discharge level, discharge exits are sized for all occupants from all other storeys (including the discharge level itself). 
+-	Spiral stairways not considered 
+-	Stair landing path is computed following the Predtechenskii and Milinskii method. 
+-	Refuge areas are not considered. 
+-	Project units should be set in SI units.
+-	Only gross area is considered. Net area is not deducted.
+-	High rise buildings are not considered.  
+-	Prescriptions related to corridors are not checked.  
+-	Doors must be oriented outwards.  
 
 ## Acknowledgments
 
