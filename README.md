@@ -1,7 +1,11 @@
 # Evac4Bim
 A Revit add-in for better integration of Fire Evacuation into te BIM worklfow
+This repository hosts the source code and assemblies.
 
-# Features 
+## Revit version
+This add-in can run on Revit 2022 or later versions
+
+## Features 
 1.	Extract information required to perform assessments of fire evacuation performance or compliance (e.g number of exits for a space, width of stairways on a storey). 
     The user can also edit/include additional information (occupant profiles, number of occupants, room function/usage, etc.).  
     
@@ -29,4 +33,22 @@ A Revit add-in for better integration of Fire Evacuation into te BIM worklfow
 
 ![image](https://user-images.githubusercontent.com/17513670/163675854-c9a7e6be-8e64-4a0c-8b33-82c2d2ed3047.png)
 
+## Installation Instructions 
+- Download the latest release from [here](https://github.com/YakNazim/Evac4Bim/releases)
+- Unpack the content of the zip package into Revit's addin folder
+e.g C:\ProgramData\Autodesk\Revit\Addins\2022
 
+![image](https://user-images.githubusercontent.com/17513670/163676617-a89b5c66-236f-47f1-b96f-030662964981.png)
+
+## Build Instructions 
+
+## Case Studies and Sample Projects 
+You can find sample project files on this [repo](https://mega.nz/folder/TPpyjAQC#VJr5T6PZo0-9qF5yHBNvPw). 
+It includes Revit models, IFC files, Pathfinder models as well as the Solibri ruleset used for validation. Additionally, video recordings are included. 
+
+## Known Limitations 
+
+## Acknowledgment
+
+- Icons from https://www.flaticon.com/ 
+- Revit ifc export 
