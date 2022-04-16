@@ -99,6 +99,9 @@ The following limitations should be considered regarding the prototype code revi
 -	Prescriptions related to corridors are not checked.  
 -	Doors must be oriented outwards.  
 
+## Code reference
+An overview of the code is given in [this wiki](https://github.com/YakNazim/Evac4Bim/wiki/Code-reference)
+
 ## Acknowledgments
 
 - Dr Pete Thompson and Dr Enrico Ronchi (Lund University) : for their support throughout my thesis work and for introducing me into this research topic. 
