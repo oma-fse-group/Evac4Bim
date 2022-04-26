@@ -100,6 +100,7 @@ The following limitations should be considered regarding the prototype code revi
 -	High rise buildings are not considered.  
 -	Prescriptions related to corridors are not checked.  
 -	Doors must be oriented outwards.  
+-	Paths of travel are generated as direct line-of-sight, for illustration only. IBC-compliant pathways should be L-shaped.
 
 ## Code reference
 An overview of the code is given in [this wiki](https://github.com/YakNazim/Evac4Bim/wiki/Code-reference)
