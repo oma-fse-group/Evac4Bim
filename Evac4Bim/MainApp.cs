@@ -67,7 +67,7 @@ namespace Evac4Bim
             splt_CmdImportParameter.AddPushButton(bResultsTwo);
 
 
-            // Add LaucnResults to the ribbon 
+            // Add LaunchResults to the ribbon 
             PushButtonData pbCmdLaunchResults = createPushButton("CmdLaunchResults.dll",
                 "CmdLaunchResults",
                 "Evac4Bim.CmdLaunchResults",
