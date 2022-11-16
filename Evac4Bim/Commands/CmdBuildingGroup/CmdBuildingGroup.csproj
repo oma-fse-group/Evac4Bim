@@ -68,6 +68,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2021\Evac4Bim\" /F /R /Y /I
-xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
+xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)" "C:\ProgramData\Autodesk\Revit\Addins\2023\Evac4Bim\" /F /R /Y /I</PostBuildEvent>
   </PropertyGroup>
 </Project>

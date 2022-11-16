@@ -49,7 +49,7 @@ namespace Evac4Bim
 
             // create a dictionnary to convert category names (retrieved from csv file) into enumerations
             IDictionary<string, BuiltInCategory> BuiltInCategoryDict = new Dictionary<string, BuiltInCategory>();
-            BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors); //adding a key/value using the Add() method
+            BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors);
             BuiltInCategoryDict.Add("OST_Rooms", BuiltInCategory.OST_Rooms);
             BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
             BuiltInCategoryDict.Add("OST_Levels", BuiltInCategory.OST_Levels);
@@ -58,18 +58,17 @@ namespace Evac4Bim
   
 
             // create a dictionnary to convert param types (retrieved from csv file) into enumerations
-            IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();
-            ParameterTypeDict.Add("YesNo", ParameterType.YesNo); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("TEXT", ParameterType.Text); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("NUMBER", ParameterType.Number); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("AREA", ParameterType.Area);
-            ParameterTypeDict.Add("INTEGER", ParameterType.Integer);
-            ParameterTypeDict.Add("LENGTH", ParameterType.Length);
-            ParameterTypeDict.Add("PERIOD", ParameterType.Period);
+            IDictionary<string, ForgeTypeId> ParameterTypeDict = new Dictionary<string, ForgeTypeId>();
+            ParameterTypeDict.Add("YesNo", SpecTypeId.Boolean.YesNo);
+            ParameterTypeDict.Add("TEXT", SpecTypeId.String.Text);
+            ParameterTypeDict.Add("NUMBER", SpecTypeId.Number);
+            ParameterTypeDict.Add("AREA", SpecTypeId.Area);
+            ParameterTypeDict.Add("INTEGER", SpecTypeId.Int.Integer);
+            ParameterTypeDict.Add("LENGTH", SpecTypeId.Length);
+            ParameterTypeDict.Add("PERIOD", SpecTypeId.Period);
  
             string paramList = "";
             int paramCount = 0;
-            string msg = "The following parameters were loaded and configured succesfuly :";
 
             // First check if a shared param txt file is already defined in Revit => overwrite it
             // Else, create one (ask user)
@@ -205,7 +204,7 @@ namespace Evac4Bim
                 // but check if param already exists ! 
 
 
-                if (ContainsParameterName(bindingMap, option.Name, ParameterGroupDict[paramGroup], option.Type))
+                if (ContainsParameterName(bindingMap, option.Name, ParameterGroupDict[paramGroup], option.GetDataType()))
                 {
                     continue;
 
@@ -245,13 +244,13 @@ namespace Evac4Bim
         /// <param name="bindingMap"></param>
         /// <param name="paramName"></param>
         /// <returns></returns>
-        private static bool ContainsParameterName(BindingMap bindingMap, string paramName, BuiltInParameterGroup paramGroup, ParameterType paramType)
+        private static bool ContainsParameterName(BindingMap bindingMap, string paramName, BuiltInParameterGroup paramGroup, ForgeTypeId paramType)
         {
             DefinitionBindingMapIterator it = bindingMap.ForwardIterator();
             it.Reset();
             while (it.MoveNext())
             {
-                if (it.Key.Name == paramName && it.Key.ParameterGroup == paramGroup && it.Key.ParameterType == paramType)
+                if (it.Key.Name == paramName && it.Key.ParameterGroup == paramGroup && it.Key.GetDataType() == paramType)
                 {
                     return true;
                     

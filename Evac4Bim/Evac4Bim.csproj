@@ -69,6 +69,10 @@ xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2021\E
 xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
 xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
 xcopy "$(TargetDir)\Newtonsoft.Json.xml" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\" /F /R /Y /I
-xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\icons\" /F /R /Y /I</PostBuildEvent>
+xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2022\Evac4Bim\icons\" /F /R /Y /I
+xcopy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2023\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\ProgramData\Autodesk\Revit\Addins\2023\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)\Newtonsoft.Json.xml" "C:\ProgramData\Autodesk\Revit\Addins\2023\Evac4Bim\" /F /R /Y /I
+xcopy "$(TargetDir)\..\..\..\*.png" "C:\ProgramData\Autodesk\Revit\Addins\2023\Evac4Bim\icons\" /F /R /Y /I</PostBuildEvent>
   </PropertyGroup>
 </Project>
