@@ -49,7 +49,7 @@ namespace Evac4Bim
 
             // create a dictionnary to convert category names (retrieved from csv file) into enumerations
             IDictionary<string, BuiltInCategory> BuiltInCategoryDict = new Dictionary<string, BuiltInCategory>();
-            BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors); //adding a key/value using the Add() method
+            BuiltInCategoryDict.Add("OST_Doors", BuiltInCategory.OST_Doors);
             BuiltInCategoryDict.Add("OST_Rooms", BuiltInCategory.OST_Rooms);
             BuiltInCategoryDict.Add("OST_ProjectInformation", BuiltInCategory.OST_ProjectInformation);
             BuiltInCategoryDict.Add("OST_Levels", BuiltInCategory.OST_Levels);
@@ -59,9 +59,9 @@ namespace Evac4Bim
 
             // create a dictionnary to convert param types (retrieved from csv file) into enumerations
             IDictionary<string, ForgeTypeId> ParameterTypeDict = new Dictionary<string, ForgeTypeId>();
-            ParameterTypeDict.Add("YesNo", SpecTypeId.Boolean.YesNo); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("TEXT", SpecTypeId.String.Text); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("NUMBER", SpecTypeId.Number); //adding a key/value using the Add() method
+            ParameterTypeDict.Add("YesNo", SpecTypeId.Boolean.YesNo);
+            ParameterTypeDict.Add("TEXT", SpecTypeId.String.Text);
+            ParameterTypeDict.Add("NUMBER", SpecTypeId.Number);
             ParameterTypeDict.Add("AREA", SpecTypeId.Area);
             ParameterTypeDict.Add("INTEGER", SpecTypeId.Int.Integer);
             ParameterTypeDict.Add("LENGTH", SpecTypeId.Length);
@@ -69,7 +69,6 @@ namespace Evac4Bim
  
             string paramList = "";
             int paramCount = 0;
-            string msg = "The following parameters were loaded and configured succesfuly :";
 
             // First check if a shared param txt file is already defined in Revit => overwrite it
             // Else, create one (ask user)
