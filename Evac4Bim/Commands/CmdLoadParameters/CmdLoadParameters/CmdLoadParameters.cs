@@ -58,14 +58,14 @@ namespace Evac4Bim
   
 
             // create a dictionnary to convert param types (retrieved from csv file) into enumerations
-            IDictionary<string, ParameterType> ParameterTypeDict = new Dictionary<string, ParameterType>();
-            ParameterTypeDict.Add("YesNo", ParameterType.YesNo); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("TEXT", ParameterType.Text); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("NUMBER", ParameterType.Number); //adding a key/value using the Add() method
-            ParameterTypeDict.Add("AREA", ParameterType.Area);
-            ParameterTypeDict.Add("INTEGER", ParameterType.Integer);
-            ParameterTypeDict.Add("LENGTH", ParameterType.Length);
-            ParameterTypeDict.Add("PERIOD", ParameterType.Period);
+            IDictionary<string, ForgeTypeId> ParameterTypeDict = new Dictionary<string, ForgeTypeId>();
+            ParameterTypeDict.Add("YesNo", SpecTypeId.Boolean.YesNo); //adding a key/value using the Add() method
+            ParameterTypeDict.Add("TEXT", SpecTypeId.String.Text); //adding a key/value using the Add() method
+            ParameterTypeDict.Add("NUMBER", SpecTypeId.Number); //adding a key/value using the Add() method
+            ParameterTypeDict.Add("AREA", SpecTypeId.Area);
+            ParameterTypeDict.Add("INTEGER", SpecTypeId.Int.Integer);
+            ParameterTypeDict.Add("LENGTH", SpecTypeId.Length);
+            ParameterTypeDict.Add("PERIOD", SpecTypeId.Period);
  
             string paramList = "";
             int paramCount = 0;
@@ -205,7 +205,7 @@ namespace Evac4Bim
                 // but check if param already exists ! 
 
 
-                if (ContainsParameterName(bindingMap, option.Name, ParameterGroupDict[paramGroup], option.Type))
+                if (ContainsParameterName(bindingMap, option.Name, ParameterGroupDict[paramGroup], option.GetDataType()))
                 {
                     continue;
 
@@ -245,13 +245,13 @@ namespace Evac4Bim
         /// <param name="bindingMap"></param>
         /// <param name="paramName"></param>
         /// <returns></returns>
-        private static bool ContainsParameterName(BindingMap bindingMap, string paramName, BuiltInParameterGroup paramGroup, ParameterType paramType)
+        private static bool ContainsParameterName(BindingMap bindingMap, string paramName, BuiltInParameterGroup paramGroup, ForgeTypeId paramType)
         {
             DefinitionBindingMapIterator it = bindingMap.ForwardIterator();
             it.Reset();
             while (it.MoveNext())
             {
-                if (it.Key.Name == paramName && it.Key.ParameterGroup == paramGroup && it.Key.ParameterType == paramType)
+                if (it.Key.Name == paramName && it.Key.ParameterGroup == paramGroup && it.Key.GetDataType() == paramType)
                 {
                     return true;
                     
